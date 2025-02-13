@@ -28,7 +28,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "eslint.config.mjs",
-    "postcss.config.mjs"
+    "postcss.config.mjs",
+    ".lintstagedrc.mjs"
   ],
   "exclude": ["node_modules"]
 }
