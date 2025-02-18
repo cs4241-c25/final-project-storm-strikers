@@ -1,0 +1,19 @@
+"use server";
+
+import { services } from "@/db";
+import { revalidatePath } from "next/cache";
+
+export async function createService(formData: FormData) {
+  const service = {
+    name: formData.get("name") as string,
+    specialities: (formData.get("specialities") as string).split(","),
+    floor: (formData.get("floor") as string).split(","),
+    suite: (formData.get("suite") as string).split(","),
+    phone: formData.get("phone") as string,
+    hours: formData.get("hours") as string,
+    building: formData.get("building") as string,
+  };
+
+  await services.insertOne(service);
+  revalidatePath("/services");
+}
