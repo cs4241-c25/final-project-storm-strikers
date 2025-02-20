@@ -1,8 +1,8 @@
 import ServiceList from "@/components/services/serviceList";
 import { Service, services } from "@/db";
 
-function serializeServices(services: Service[]) {
-  return services.map((service) => ({
+function serializeServices(servicesToSerialize: Service[]) {
+  return servicesToSerialize.map((service) => ({
     ...service,
     _id: service._id.toString(),
   }));
