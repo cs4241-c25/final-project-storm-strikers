@@ -4,6 +4,15 @@ const client = new MongoClient(process.env.MONGODB_URI ?? "").db(
   "StormStrikersApp",
 );
 
+export interface AmbulatorySite {
+  _id: ObjectId;
+  name: string;
+  streetAddress: string;
+}
+
+export const ambulatorySites =
+  client.collection<AmbulatorySite>("ambulatorySites");
+
 export const services = client.collection("services");
 export default client;
 
