@@ -9,6 +9,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -70,7 +77,16 @@ export default async function Services() {
               </div>
               <div className="space-y-2">
                 <label htmlFor="building">Building</label>
-                <Input id="building" name="building" required />
+                <Select name="building" required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a building" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="patriot">Patriot Place</SelectItem>
+                    <SelectItem value="chestnut">Chestnut Hill</SelectItem>
+                    <SelectItem value="faulkner">Faulkner Hospital</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <DialogTrigger asChild>
                 <Button type="submit" className="w-full">

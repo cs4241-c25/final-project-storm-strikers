@@ -1,6 +1,6 @@
 "use server";
 
-import { services } from "@/db";
+import { BuildingType, services } from "@/db";
 import { revalidatePath } from "next/cache";
 
 export async function createService(formData: FormData) {
@@ -11,7 +11,7 @@ export async function createService(formData: FormData) {
     suite: (formData.get("suite") as string).split(","),
     phone: formData.get("phone") as string,
     hours: formData.get("hours") as string,
-    building: formData.get("building") as string,
+    building: formData.get("building") as BuildingType,
   };
 
   await services.insertOne(service);

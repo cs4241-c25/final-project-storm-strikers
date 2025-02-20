@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,7 +20,42 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.className} antialiased`}>{children}</body>
+      <body className={`${geistSans.className} antialiased`}>
+        <header className="bg-primary text-primary-foreground py-4">
+          <div className="container mx-auto px-4 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-10 h-10 bg-white rounded-full" />
+              <h1 className="text-2xl font-bold">Mass General Brigham</h1>
+            </div>
+            <nav>
+              <ul className="flex space-x-4">
+                <li>
+                  <Link href="/" className="hover:underline">
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/services" className="hover:underline">
+                    Services
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/contact" className="hover:underline">
+                    Contact
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </header>
+        {children}
+        <footer className="bg-gray-100 py-6">
+          <div className="container mx-auto px-4 text-center">
+            <p>&copy; 2025 Mass General Brigham. All rights reserved.</p>
+            <p>For emergencies, please call 911</p>
+          </div>
+        </footer>
+      </body>
     </html>
   );
 }
