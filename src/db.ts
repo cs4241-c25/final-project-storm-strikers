@@ -1,17 +1,14 @@
 import { MongoClient, ObjectId } from "mongodb";
+import { z } from "zod";
+import { AmbulatorySite } from "./types";
 
 const client = new MongoClient(process.env.MONGODB_URI ?? "").db(
   "StormStrikersApp",
 );
 
-export interface AmbulatorySite {
-  _id: ObjectId;
-  name: string;
-  streetAddress: string;
-}
-
+const _ambulatorySiteNoId = AmbulatorySite.omit({ id: true });
 export const ambulatorySites =
-  client.collection<AmbulatorySite>("ambulatorySites");
+  client.collection<z.infer<typeof _ambulatorySiteNoId>>("ambulatorySites");
 
 export const services = client.collection("services");
 export default client;

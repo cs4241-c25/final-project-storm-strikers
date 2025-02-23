@@ -1,44 +1,16 @@
-import { Button } from "@/components/ui/button";
-import { AmbulatorySite } from "@/db";
-import { Plus } from "lucide-react";
-import { AddSiteDialog } from "./Dialogs";
-import SiteTable from "./Table";
-
-export type AmbulatorySiteSerializable = Omit<AmbulatorySite, "_id"> & {
-  _id: string;
-};
+import { ambulatorySites } from "@/db";
+import { AmbulatorySite } from "@/types";
+import { z } from "zod";
+import ClientStateManager from "./clientStateManager";
 
 export default async function Page() {
-  // const sites = await AmbulatorySites.find().toArray();
-  const data = [
-    {
-      _id: "test",
-      name: "test",
-      streetAddress: "1234 test ave",
-    },
-    {
-      _id: "test2",
-      name: "test",
-      streetAddress: "1234 test ave",
-    },
-    {
-      _id: "test3",
-      name: "test",
-      streetAddress: "1234 test ave",
-    },
-  ];
+  const sites: z.infer<typeof AmbulatorySite>[] = (
+    await ambulatorySites.find().toArray()
+  ).map((site) => ({
+    ...site,
+    _id: undefined, // We cannot serialize this, so we have to ignore it
+    id: site._id.toString(),
+  }));
 
-  return (
-    <div className="flex flex-col grow m-3 gap-5">
-      <AddSiteDialog
-        trigger={
-          <Button className="self-end">
-            <Plus />
-            Add Ambulatory Site
-          </Button>
-        }
-      />
-      <SiteTable className="grow" sites={data} />
-    </div>
-  );
+  return <ClientStateManager serverState={sites} />;
 }

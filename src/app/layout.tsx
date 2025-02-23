@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import Link from "next/link";
@@ -21,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.className} antialiased`}>
+        <Toaster />
         <header className="bg-primary text-primary-foreground py-4">
           <div className="container mx-auto px-4 flex items-center justify-between">
             <div className="flex items-center space-x-2">
