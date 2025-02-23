@@ -24,7 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Service, services } from "@/db";
-import { createService } from "./actions";
+import { createService, deleteService } from "./actions";
 
 export default async function Services() {
   const servicesList = (await services.find({}).toArray()) as Service[];
@@ -43,6 +43,8 @@ export default async function Services() {
     <div className="space-y-4 p-4">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Services Directory</h1>
+
+        {/* Dialog for Adding a Service */}
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="default">Add New Service</Button>
@@ -100,11 +102,46 @@ export default async function Services() {
                   </SelectContent>
                 </Select>
               </div>
-              <DialogTrigger asChild>
-                <Button type="submit" className="w-full">
-                  Create Service
-                </Button>
-              </DialogTrigger>
+              <Button type="submit" className="w-full">
+                Create Service
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog for Deleting a Service */}
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="default">Delete Existing Service</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Existing Service</DialogTitle>
+              <DialogDescription>
+                Please provide name of existing service.
+              </DialogDescription>
+            </DialogHeader>
+            <form action={deleteService} className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="name">Name</label>
+                <Input id="name" name="name" required />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="building">Building</label>
+                <Select name="building" required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a building" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="patriot">Patriot Place</SelectItem>
+                    <SelectItem value="chestnut">Chestnut Hill</SelectItem>
+                    <SelectItem value="faulkner">Faulkner Hospital</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="submit" className="w-full">
+                Delete Service
+              </Button>
             </form>
           </DialogContent>
         </Dialog>

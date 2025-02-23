@@ -17,3 +17,11 @@ export async function createService(formData: FormData) {
   await services.insertOne(service);
   revalidatePath("/services");
 }
+
+export async function deleteService(formData: FormData) {
+  const serviceName = formData.get("name") as string;
+  const query = { name: serviceName };
+
+  await services.deleteOne(query);
+  revalidatePath("/services");
+}
