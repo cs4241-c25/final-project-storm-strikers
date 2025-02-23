@@ -1,6 +1,5 @@
 import AuthButton from "@/components/auth/authButton";
 import { Toaster } from "@/components/ui/sonner";
-import AuthButton from "@/components/auth/authButton";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import Link from "next/link";
