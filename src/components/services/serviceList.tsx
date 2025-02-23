@@ -105,7 +105,7 @@ export default function ServiceList({
             </CardContent>
             <CardFooter>
               <Button asChild>
-                <Link href={`/services`}>Directions</Link>
+                <Link href={`/admin/services`}>Directions</Link>
               </Button>
             </CardFooter>
           </Card>

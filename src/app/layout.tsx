@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
+import AuthButton from "@/components/auth/authButton";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import Link from "next/link";
@@ -30,21 +31,25 @@ export default function RootLayout({
               <h1 className="text-2xl font-bold">Mass General Brigham</h1>
             </div>
             <nav>
-              <ul className="flex space-x-4">
+              <ul className="flex space-x-4 items-center">
                 <li>
-                  <Link href="/" className="hover:underline">
+                  <Link
+                    href="/"
+                    className="hover:underline text-xl flex items-center"
+                  >
                     Home
                   </Link>
                 </li>
                 <li>
-                  <Link href="/services" className="hover:underline">
+                  <Link
+                    href="/admin/services"
+                    className="hover:underline text-xl flex items-center"
+                  >
                     Services
                   </Link>
                 </li>
                 <li>
-                  <Link href="/contact" className="hover:underline">
-                    Contact
-                  </Link>
+                  <AuthButton />
                 </li>
               </ul>
             </nav>
