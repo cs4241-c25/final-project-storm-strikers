@@ -1,3 +1,4 @@
+import AuthButton from "@/components/auth/authButton";
 import { Toaster } from "@/components/ui/sonner";
 import AuthButton from "@/components/auth/authButton";
 import type { Metadata } from "next";
@@ -38,14 +39,6 @@ export default function RootLayout({
                     className="hover:underline text-xl flex items-center"
                   >
                     Home
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/admin/services"
-                    className="hover:underline text-xl flex items-center"
-                  >
-                    Services
                   </Link>
                 </li>
                 <li>
