@@ -29,6 +29,16 @@ export default function ServiceList({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBuilding, setSelectedBuilding] = useState("all");
 
+  // Extract unique building names
+  const buildingNames = Array.from(
+    new Set(initialServices.map((service) => service.building)),
+  );
+
+  // Helper function to capitalize the first letter of a string
+  const capitalizeFirstLetter = (string: string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+
   const filteredServices = initialServices.filter((service) => {
     const matchesSearch =
       service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -63,9 +73,11 @@ export default function ServiceList({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Buildings</SelectItem>
-            <SelectItem value="patriot">Patriot Place</SelectItem>
-            <SelectItem value="chestnut">Chestnut Hill</SelectItem>
-            <SelectItem value="faulkner">Faulkner Hospital</SelectItem>
+            {buildingNames.map((building, index) => (
+              <SelectItem key={index} value={building}>
+                {capitalizeFirstLetter(building)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

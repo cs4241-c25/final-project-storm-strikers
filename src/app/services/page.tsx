@@ -29,6 +29,16 @@ import { createService } from "./actions";
 export default async function Services() {
   const servicesList = (await services.find({}).toArray()) as Service[];
 
+  // Extract unique building names
+  const buildingNames = Array.from(
+    new Set(servicesList.map((service) => service.building)),
+  );
+
+  // Helper function to capitalize the first letter of a string
+  const capitalizeFirstLetter = (string: string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+
   return (
     <div className="space-y-4 p-4">
       <div className="flex justify-between items-center">
@@ -82,9 +92,11 @@ export default async function Services() {
                     <SelectValue placeholder="Select a building" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="patriot">Patriot Place</SelectItem>
-                    <SelectItem value="chestnut">Chestnut Hill</SelectItem>
-                    <SelectItem value="faulkner">Faulkner Hospital</SelectItem>
+                    {buildingNames.map((building, index) => (
+                      <SelectItem key={index} value={building}>
+                        {capitalizeFirstLetter(building)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
