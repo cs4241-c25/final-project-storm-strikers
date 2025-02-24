@@ -160,15 +160,18 @@ export default function ClientStateManager({
 
   return (
     <div className="flex flex-col grow m-3 gap-5">
-      <AddSiteDialog
-        trigger={
-          <Button className="self-end">
-            <Plus />
-            Add Ambulatory Site
-          </Button>
-        }
-        action={addSiteExecute}
-      />
+      <div className="flex flex-row justify-between items-end">
+        <h1 className="text-2xl font-bold">Ambulatory Sites</h1>
+        <AddSiteDialog
+          trigger={
+            <Button className="self-end">
+              <Plus />
+              Add Ambulatory Site
+            </Button>
+          }
+          action={addSiteExecute}
+        />
+      </div>
       <ErrorDialog
         isOpen={addSiteStatus === "hasErrored"}
         input={addSiteInput}
