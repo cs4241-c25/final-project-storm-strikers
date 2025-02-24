@@ -41,7 +41,7 @@ export default function RootLayout({
                   />
                 </g>
               </svg>
-              <div className="flex flex-col gap-0.5">
+              <div className="flex flex-col">
                 <h1 className="text-xl font-semibold">
                   Brigham and Women&apos;s Hospital
                 </h1>
@@ -53,10 +53,7 @@ export default function RootLayout({
             <nav>
               <ul className="flex space-x-4 items-center">
                 <li>
-                  <Link
-                    href="/"
-                    className="hover:underline text-xl flex items-center"
-                  >
+                  <Link href="/" className="hover:underline flex items-center">
                     Home
                   </Link>
                 </li>
