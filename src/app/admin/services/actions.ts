@@ -1,7 +1,8 @@
 "use server";
 
+import { ServiceCacheKey } from "@/caches";
 import { BuildingType, Service, services } from "@/db";
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 
 export async function createService(formData: FormData) {
   const service = {
@@ -15,7 +16,7 @@ export async function createService(formData: FormData) {
   };
 
   await services.insertOne(service);
-  revalidatePath("/services");
+  revalidateTag(ServiceCacheKey);
 }
 
 export async function editService(formData: FormData) {
@@ -53,7 +54,7 @@ export async function editService(formData: FormData) {
 
   await services.updateOne({ name: serviceId }, { $set: updatedService });
 
-  revalidatePath("/services");
+  revalidateTag(ServiceCacheKey);
 }
 
 export async function deleteService(formData: FormData) {
@@ -66,5 +67,5 @@ export async function deleteService(formData: FormData) {
   const query = { name: serviceId };
 
   await services.deleteOne(query);
-  revalidatePath("/services");
+  revalidateTag(ServiceCacheKey);
 }

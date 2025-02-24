@@ -1,5 +1,6 @@
+import { getAllServicesCached } from "@/caches";
 import ServiceList from "@/components/services/serviceList";
-import { Service, services } from "@/db";
+import { Service } from "@/db";
 
 function serializeServices(servicesToSerialize: Service[]) {
   return servicesToSerialize.map((service) => ({
@@ -9,7 +10,7 @@ function serializeServices(servicesToSerialize: Service[]) {
 }
 
 export default async function Home() {
-  const servicesList = (await services.find({}).toArray()) as Service[];
+  const servicesList = await getAllServicesCached();
   const serializedServices = serializeServices(servicesList);
 
   return (

@@ -1,10 +1,11 @@
 "use server";
 
+import { SiteCacheKey } from "@/caches";
 import { ambulatorySites } from "@/db";
 import actionClient from "@/lib/safe-action";
 import { AmbulatorySite } from "@/types";
 import { ObjectId } from "mongodb";
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { zfd } from "zod-form-data";
 
@@ -13,7 +14,7 @@ export const addSiteAction = actionClient
   .action(async ({ parsedInput }) => {
     const newSite = await ambulatorySites.insertOne({ ...parsedInput });
 
-    revalidatePath("/admin/sites"); // Revalidate the site table
+    revalidateTag(SiteCacheKey);
 
     return {
       ...parsedInput,
@@ -43,7 +44,7 @@ export const editSiteAction = actionClient
       throw Error(`Could not find a site with ID: ${parsedInput.id}`);
     }
 
-    revalidatePath("/admin/sites");
+    revalidateTag(SiteCacheKey); // Revalidate the site table
 
     const siteOmitId = { ...newSite, _id: undefined };
 
@@ -65,7 +66,7 @@ export const deleteSiteAction = actionClient
       throw Error(`Could not find a site with ID: ${parsedInput.id}`);
     }
 
-    revalidatePath("/admin/sites");
+    revalidateTag(SiteCacheKey);
 
     return {};
   });
