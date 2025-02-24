@@ -1,3 +1,4 @@
+import { getAllServicesCached } from "@/caches";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,11 +24,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Service, services } from "@/db";
 import { createService, deleteService, editService } from "./actions";
 
 export default async function Services() {
-  const servicesList = (await services.find({}).toArray()) as Service[];
+  const servicesList = await getAllServicesCached();
   //const [isOpen, setIsOpen] = useState(false); // Manage dialog visibility
 
   // Extract unique building names

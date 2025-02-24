@@ -10,7 +10,7 @@ const _ambulatorySiteNoId = AmbulatorySite.omit({ id: true });
 export const ambulatorySites =
   client.collection<z.infer<typeof _ambulatorySiteNoId>>("ambulatorySites");
 
-export const services = client.collection("services");
+export const services = client.collection<Omit<Service, "_id">>("services");
 export const buildings = client.collection("buildings");
 export default client;
 
