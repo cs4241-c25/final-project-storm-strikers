@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import Link from "next/link";
 import SignIn from "./signin";
 import { SignOut } from "./signout";
 
@@ -27,15 +28,15 @@ export default async function AuthButton() {
           <DropdownMenuContent>
             <DropdownMenuLabel>{session.user.name}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <a href="/admin/services">Services</a>
+            <DropdownMenuItem asChild>
+              <Link href="/admin/services">Services</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <a href="/admin/sites">Sites</a>
+            <DropdownMenuItem asChild>
+              <Link href="/admin/sites">Sites</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem>
+            <DropdownMenuItem asChild>
               <SignOut />
             </DropdownMenuItem>
           </DropdownMenuContent>
