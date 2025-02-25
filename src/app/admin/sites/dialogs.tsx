@@ -100,11 +100,13 @@ function SiteLabelsAndInputs({
           className="pl-6"
           defaultValue={site?.parkingPrice}
           type="number"
+          min={0}
           step={0.01}
           required
           name="parkingPrice"
           id={parkingPriceElementId}
         />
+        <span className="absolute right-8 top-1/2 -translate-y-1/2">/hr</span>
       </div>
     </div>
   );
