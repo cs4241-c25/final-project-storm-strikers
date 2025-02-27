@@ -134,6 +134,9 @@ export default function SiteTable({
   const table = useReactTable<z.infer<typeof AmbulatorySite>>({
     data: sitesShallowCopy,
     columns,
+    defaultColumn: {
+      size: NaN,
+    },
     getCoreRowModel: getCoreRowModel(),
   });
 
