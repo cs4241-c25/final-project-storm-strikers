@@ -8,7 +8,7 @@ export default function MyGoogleMap({ buildings }: { buildings: Building[] }) {
     <div className="w-10 h-10">
       <GMap
         mapId="bf51a910020fa25a"
-        defaultZoom={12}
+        defaultZoom={5}
         defaultCenter={{ lat: 42.3241, lng: -71.1676 }} // Centered around the middle hospital
         gestureHandling="greedy"
         disableDefaultUI={true}

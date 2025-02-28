@@ -3,7 +3,7 @@
 import { APIProvider } from "@vis.gl/react-google-maps";
 
 export default function MapWrapper({
-  children,
+  children, 
 }: {
   children: React.ReactNode;
 }) {
