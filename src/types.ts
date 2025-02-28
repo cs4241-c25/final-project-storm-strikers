@@ -6,4 +6,9 @@ export const AmbulatorySite = z.strictObject({
   name: zfd.text(),
   streetAddress: zfd.text(),
   parkingPrice: zfd.numeric(z.number().step(0.01).min(0)),
+  parkingLocation: z.strictObject({
+    latitude: zfd.numeric(),
+    longitude: zfd.numeric(),
+    closestStreetAddress: zfd.text(),
+  }),
 });
