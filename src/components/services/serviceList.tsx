@@ -23,10 +23,10 @@ import { useState } from "react";
 
 export default function ServiceList({
   initialServices,
-  building,
+  buildingDirections,
 }: {
   initialServices: Service[];
-  building: Building[];
+  buildingDirections: Building[];
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBuilding, setSelectedBuilding] = useState("all");
@@ -115,7 +115,7 @@ export default function ServiceList({
             <CardFooter className="flex justify-between">
               <Button
                 onClick={() => {
-                  const buildingObj = building.find(
+                  const buildingObj = buildingDirections.find(
                     (b) =>
                       b.name.toLowerCase() === service.building.toLowerCase(),
                   );
@@ -136,7 +136,7 @@ export default function ServiceList({
 
               <Button
                 onClick={() => {
-                  const buildingObj = building.find(
+                  const buildingObj = buildingDirections.find(
                     (b) =>
                       b.name.toLowerCase() === service.building.toLowerCase(),
                   );
