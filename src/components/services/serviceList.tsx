@@ -18,17 +18,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Service } from "@/db";
-import Link from "next/link";
+import { Building } from "@/lib/models/building";
 import { useState } from "react";
 
 export default function ServiceList({
   initialServices,
+  building,
 }: {
   initialServices: Service[];
+  building: Building[];
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBuilding, setSelectedBuilding] = useState("all");
 
+  // Helper function to open Google Maps with directions to a destination
+  const openGoogleMaps = (destination: { lat: number; lng: number }) => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${destination.lat},${destination.lng}`;
+    console.log("Opening Google Maps with URL:", url);
+    window.open(url, "_blank"); 
+  };
+  
   // Extract unique building names
   const buildingNames = Array.from(
     new Set(initialServices.map((service) => service.building)),
@@ -84,32 +93,59 @@ export default function ServiceList({
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredServices.map((service) => (
-          <Card key={service._id.toString()}>
-            <CardHeader>
-              <CardTitle>{service.name}</CardTitle>
-              <CardDescription>
-                {service.specialities.join(", ")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p>
-                <strong>Location:</strong> Floor {service.floor.join(", ")},
-                Suite {service.suite.join(", ")}
-              </p>
-              <p>
-                <strong>Hours:</strong> {service.hours}
-              </p>
-              <p>
-                <strong>Phone:</strong> {service.phone}
-              </p>
-            </CardContent>
-            <CardFooter>
-              <Button asChild>
-                <Link href={`/admin/services`}>Directions</Link>
+            <Card key={service._id.toString()}>
+              <CardHeader>
+                <CardTitle>{service.name}</CardTitle>
+                <CardDescription>
+                  {service.specialities.join(", ")}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p>
+                  <strong>Location:</strong> Floor {service.floor.join(", ")},
+                  Suite {service.suite.join(", ")}
+                </p>
+                <p>
+                  <strong>Hours:</strong> {service.hours}
+                </p>
+                <p>
+                  <strong>Phone:</strong> {service.phone}
+                </p>
+              </CardContent>
+              <CardFooter className="flex justify-between">
+              <Button
+                onClick={() => {
+                  const buildingObj = building.find((b) => b.name.toLowerCase() === service.building.toLowerCase());
+                  console.log("Selected Building for Parking:", buildingObj);
+                  
+                  if (buildingObj && buildingObj.parking) {
+                    openGoogleMaps({ lat: buildingObj.parking.lat, lng: buildingObj.parking.lng });
+                  } else {
+                    alert("Parking location not found for this building.");
+                  }
+                }}
+              >
+                Find Parking
               </Button>
-            </CardFooter>
-          </Card>
-        ))}
+
+              <Button
+                onClick={() => {
+                  const buildingObj = building.find((b) => b.name.toLowerCase() === service.building.toLowerCase());
+                  console.log("Selected Building for Drop-Off:", buildingObj);
+                  
+                  if (buildingObj && buildingObj.dropOff) {
+                    openGoogleMaps({ lat: buildingObj.dropOff.lat, lng: buildingObj.dropOff.lng });
+                  } else {
+                    alert("Drop-off location not found for this building.");
+                  }
+                }}
+                variant="secondary"
+              >
+                Find Drop-Off
+              </Button>
+              </CardFooter>
+            </Card>
+          ))};
       </div>
     </main>
   );

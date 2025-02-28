@@ -1,6 +1,6 @@
-import { getAllServicesCached } from "@/caches";
+import { getAllServicesCached, getAllBuildingsCached } from "@/caches";
 import ServiceList from "@/components/services/serviceList";
-import { Service } from "@/db";
+import { Service, Building } from "@/db";
 
 function serializeServices(servicesToSerialize: Service[]) {
   return servicesToSerialize.map((service) => ({
@@ -9,13 +9,22 @@ function serializeServices(servicesToSerialize: Service[]) {
   }));
 }
 
+function serializeData(servicesToSerialize: Building[]) {
+  return servicesToSerialize.map((building) => ({
+    ...building,
+    _id: building._id.toString(),
+  }));
+}
+
 export default async function Home() {
   const servicesList = await getAllServicesCached();
+  const buildingsList = await getAllBuildingsCached();
   const serializedServices = serializeServices(servicesList);
+  const serializedBuildings = serializeData(buildingsList);
 
   return (
     <div className="flex flex-col min-h-screen">
-      <ServiceList initialServices={serializedServices} />
+      <ServiceList initialServices={serializedServices} building={serializedBuildings} />
     </div>
   );
 }
