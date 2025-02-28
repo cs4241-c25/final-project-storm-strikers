@@ -33,8 +33,8 @@ export const getAllServicesCached = unstable_cache(
 export const BuildingCacheKey = "buildings";
 export const getAllBuildingsCached = unstable_cache(
   async () => Object.values(buildings),
-  [],
+  [], 
   {
     tags: [BuildingCacheKey],
   },
-);
+); 
