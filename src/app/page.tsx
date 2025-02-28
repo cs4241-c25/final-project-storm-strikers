@@ -1,6 +1,6 @@
-import { getAllServicesCached, getAllBuildingsCached } from "@/caches";
+import { getAllBuildingsCached, getAllServicesCached } from "@/caches";
 import ServiceList from "@/components/services/serviceList";
-import { Service, Building } from "@/db";
+import { Building, Service } from "@/db";
 
 function serializeServices(servicesToSerialize: Service[]) {
   return servicesToSerialize.map((service) => ({
@@ -24,7 +24,10 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <ServiceList initialServices={serializedServices} building={serializedBuildings} />
+      <ServiceList
+        initialServices={serializedServices}
+        building={serializedBuildings}
+      />
     </div>
   );
 }

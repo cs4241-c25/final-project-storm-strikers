@@ -1,7 +1,7 @@
 "use client";
 
-import { Map as GMap, AdvancedMarker } from "@vis.gl/react-google-maps";
 import { Building } from "@/lib/models/building";
+import { AdvancedMarker, Map as GMap } from "@vis.gl/react-google-maps";
 
 export default function MyGoogleMap({ buildings }: { buildings: Building[] }) {
   return (

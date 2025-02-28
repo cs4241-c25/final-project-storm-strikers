@@ -1,8 +1,8 @@
 import { unstable_cache } from "next/cache";
 import type { z } from "zod";
 import { ambulatorySites, services } from "./db";
-import type { AmbulatorySite } from "./types";
 import { buildings } from "./lib/models/building";
+import type { AmbulatorySite } from "./types";
 
 export const SiteCacheKey = "ambulatorySites";
 export const getAllSitesCached = unstable_cache(

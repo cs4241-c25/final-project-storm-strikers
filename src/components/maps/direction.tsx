@@ -1,10 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { DirectionsRenderer } from "@react-google-maps/api";
+import { useEffect, useState } from "react";
 
-export default function Directions({ origin, destination }: { origin: { lat: number; lng: number }, destination: { lat: number; lng: number } }) {
-  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+export default function Directions({
+  origin,
+  destination,
+}: {
+  origin: { lat: number; lng: number };
+  destination: { lat: number; lng: number };
+}) {
+  const [directions, setDirections] =
+    useState<google.maps.DirectionsResult | null>(null);
 
   useEffect(() => {
     if (!origin || !destination) return;
@@ -20,7 +27,7 @@ export default function Directions({ origin, destination }: { origin: { lat: num
         if (status === google.maps.DirectionsStatus.OK) {
           setDirections(result);
         }
-      }
+      },
     );
   }, [origin, destination]);
 
