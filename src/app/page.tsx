@@ -26,7 +26,7 @@ export default async function Home() {
     <div className="flex flex-col min-h-screen">
       <ServiceList
         initialServices={serializedServices}
-        building={serializedBuildings}
+        buildingDirections={serializedBuildings}
       />
     </div>
   );
