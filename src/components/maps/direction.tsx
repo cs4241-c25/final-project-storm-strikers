@@ -23,8 +23,8 @@ export default function Directions({
         destination,
         travelMode: google.maps.TravelMode.DRIVING,
       },
-      (result, status) => {
-        if (status === google.maps.DirectionsStatus.OK) {
+      (result, requestStatus) => {
+        if (requestStatus === google.maps.DirectionsStatus.OK) {
           setDirections(result);
         }
       },
