@@ -8,6 +8,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -24,11 +31,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { MoreHorizontal, Pencil, Plus, Trash } from "lucide-react";
 import { createService, deleteService, editService } from "./actions";
+import { DeleteSitePopup, EditSitePopup } from "./dialogs";
 
 export default async function Services() {
   const servicesList = await getAllServicesCached();
   //const [isOpen, setIsOpen] = useState(false); // Manage dialog visibility
+
+  //const [dropdownOpen, setDropdownOpen] = useState(false);
+  // const editAction = EditSitePopup;
+  // const deleteAction = DeleteSitePopup;
 
   // Extract unique building names
   const buildingNames = Array.from(
@@ -48,7 +61,10 @@ export default async function Services() {
         {/* Dialog for Adding a Service */}
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="default">Add New Service</Button>
+            <Button variant="default">
+              <Plus />
+              Add New Service
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -135,122 +151,38 @@ export default async function Services() {
               <TableCell>{service.building}</TableCell>
 
               <TableCell>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="default">Edit</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Edit Service</DialogTitle>
-                      <DialogDescription>
-                        Update only the fields you want to change.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <form action={editService} className="space-y-4">
-                      <input
-                        type="hidden"
-                        name="id"
-                        value={service._id.toString()}
-                      />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <span className="sr-only">Open menu</span>
+                      <MoreHorizontal />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <EditSitePopup
+                      service={service}
+                      trigger={
+                        <DropdownMenuItem>
+                          <Pencil />
+                          Edit Service
+                        </DropdownMenuItem>
+                      }
+                      action={editService}
+                    />
 
-                      <div className="space-y-2">
-                        <label htmlFor="name">Name</label>
-                        <Input
-                          id="name"
-                          name="name"
-                          placeholder={service.name}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="specialities">
-                          Specialities (comma-separated)
-                        </label>
-                        <Input
-                          id="specialities"
-                          name="specialities"
-                          placeholder={service.specialities.join(", ")}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label htmlFor="floor">Floor Numbers</label>
-                          <Input
-                            id="floor"
-                            name="floor"
-                            placeholder={service.floor.join(", ")}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label htmlFor="suite">Suite Numbers</label>
-                          <Input
-                            id="suite"
-                            name="suite"
-                            placeholder={service.suite.join(", ")}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label htmlFor="phone">Phone</label>
-                          <Input
-                            id="phone"
-                            name="phone"
-                            placeholder={service.phone}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label htmlFor="hours">Hours</label>
-                          <Input
-                            id="hours"
-                            name="hours"
-                            placeholder={service.hours}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="building">Building</label>
-                        <Select name="building">
-                          <SelectTrigger>
-                            <SelectValue placeholder={service.building} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="patriot">
-                              Patriot Place
-                            </SelectItem>
-                            <SelectItem value="chestnut">
-                              Chestnut Hill
-                            </SelectItem>
-                            <SelectItem value="faulkner">
-                              Faulkner Hospital
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <Button type="submit" className="w-full">
-                        Save Changes
-                      </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </TableCell>
-
-              <TableCell>
-                <form action={deleteService}>
-                  <input
-                    type="hidden"
-                    id="name"
-                    name="name"
-                    value={service.name.toString()}
-                  />
-                  <Button type="submit" variant="destructive">
-                    Delete
-                  </Button>
-                </form>
+                    <DeleteSitePopup
+                      service={service}
+                      action={deleteService}
+                      trigger={
+                        <DropdownMenuItem className="text-destructive focus:text-destructive">
+                          <Trash className="text-destructive" />
+                          Delete Service
+                        </DropdownMenuItem>
+                      }
+                    />
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}
