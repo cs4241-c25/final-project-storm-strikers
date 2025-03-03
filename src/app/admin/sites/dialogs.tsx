@@ -13,6 +13,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
@@ -30,9 +38,21 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { AmbulatorySite } from "@/types";
-import { APIProvider, Map as GMap, Marker } from "@vis.gl/react-google-maps";
-import { LocateFixed } from "lucide-react";
+import {
+  APIProvider,
+  Map as GMap,
+  Marker,
+  useMap,
+  useMapsLibrary,
+} from "@vis.gl/react-google-maps";
+import { CommandLoading } from "cmdk";
+import { ChevronsUpDown, LocateFixed } from "lucide-react";
 import React, {
   ButtonHTMLAttributes,
   Fragment,
@@ -47,6 +67,132 @@ import type { z } from "zod";
 type PartialSiteLocation = Partial<
   z.infer<typeof AmbulatorySite>["parkingLocation"]
 >;
+
+function SiteComboBox({
+  mapId,
+  className,
+  width,
+}: {
+  mapId: string;
+  className?: string;
+  width?: number;
+}) {
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [searchString, setSearchString] = useState("");
+  const map = useMap(mapId);
+  const places = useMapsLibrary("places");
+
+  const sessionToken = useMemo(
+    () => (places ? new places.AutocompleteSessionToken() : null),
+    [places],
+  );
+
+  const placesService = useMemo(
+    () => (map && places ? new places.PlacesService(map) : null),
+    [map, places],
+  );
+
+  const autocompleteService = useMemo(
+    () => (places ? new places.AutocompleteService() : null),
+    [places],
+  );
+
+  const [predictedLocations, setPredictedLocations] = useState<
+    google.maps.places.AutocompletePrediction[]
+  >([]);
+
+  return (
+    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={popoverOpen}
+          className={`justify-between ${className}`}
+          style={{
+            width: `${width}px`,
+          }}
+        >
+          Jump to Location
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className={`p-0`} style={{ width: `${width}px` }}>
+        <Command shouldFilter={false}>
+          <CommandInput
+            value={searchString}
+            placeholder="Search places..."
+            onValueChange={async (value) => {
+              setSearchString(value);
+
+              // todo: why is map null and keep value on close (value as state)
+              if (!sessionToken || !autocompleteService) {
+                return;
+              }
+
+              if (value === "") {
+                setPredictedLocations([]);
+                return;
+              }
+
+              setLoading(true);
+
+              setPredictedLocations(
+                (
+                  await autocompleteService.getPlacePredictions({
+                    input: value,
+                    locationBias: map?.getBounds(),
+                    sessionToken,
+                  })
+                ).predictions,
+              );
+
+              setLoading(false);
+            }}
+          />
+          <CommandList>
+            <CommandEmpty>No places found.</CommandEmpty>
+            {loading && <CommandLoading />}
+            <CommandGroup>
+              {predictedLocations.map((predictedLocation) => (
+                <CommandItem
+                  key={predictedLocation.place_id}
+                  value={predictedLocation.description}
+                  onSelect={async () => {
+                    if (!placesService || !sessionToken || !map) {
+                      return;
+                    }
+
+                    const details =
+                      await new Promise<google.maps.places.PlaceResult | null>(
+                        (resolve) =>
+                          placesService.getDetails(
+                            {
+                              placeId: predictedLocation.place_id,
+                              sessionToken,
+                            },
+                            (a) => resolve(a),
+                          ),
+                      );
+
+                    if (!details?.geometry?.viewport) {
+                      return;
+                    }
+
+                    map.fitBounds(details?.geometry?.viewport);
+                  }}
+                >
+                  {predictedLocation.description}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 function SetSiteLocationPopup({
   siteLocation: initialLocation,
@@ -86,10 +232,15 @@ function SetSiteLocationPopup({
         </DialogHeader>
         <ContextMenu>
           <ContextMenuTrigger ref={contextMenuTriggerRef}>
-            <div className="h-96 rounded-sm overflow-clip border">
+            <div className="h-96 rounded-sm overflow-clip border relative">
               <APIProvider apiKey={process.env.NEXT_PUBLIC_MAPS_API_KEY ?? ""}>
-                <GMap
+                <SiteComboBox
                   mapId={mapId}
+                  className="absolute right-2 top-2 z-50"
+                  width={175}
+                />
+                <GMap
+                  id={mapId}
                   defaultZoom={15}
                   onContextmenu={(contextMenuEvent) => {
                     if (
