@@ -195,24 +195,28 @@ function SiteComboBox({
 }
 
 function SetSiteLocationPopup({
-  siteLocation: initialLocation,
-  setSiteLocation: setFinalLocation,
-  locationName,
+  locations: finalLocations,
   trigger,
 }: {
-  siteLocation: PartialSiteLocation;
-  setSiteLocation: (siteLocation: PartialSiteLocation) => void;
-  locationName: string;
+  locations: {
+    name: string;
+    location: PartialSiteLocation;
+    setLocation: (siteLocation: PartialSiteLocation) => void;
+  }[];
   trigger: ReactElement<ButtonHTMLAttributes<HTMLButtonElement>>;
 }) {
   const DefaultLatitude = 42.36529; // this is boston
   const DefaultLongitude = -71.0555; // this is boston
   const mapId = useId();
 
-  const [siteLocation, setSiteLocation] = useState<
-    Omit<PartialSiteLocation, "closestStreetAddress">
-  >(initialLocation ?? {});
-  useMemo(() => setSiteLocation(initialLocation ?? {}), [initialLocation]);
+  const [locations, setLocations] = useState<
+    Omit<PartialSiteLocation, "closestStreetAddress">[]
+  >(finalLocations.map((mapLocation) => mapLocation.location));
+  useMemo(
+    () =>
+      setLocations(finalLocations.map((mapLocation) => mapLocation.location)),
+    [finalLocations],
+  );
 
   const [rightClickLocation, setRightClickLocation] = useState<
     Omit<PartialSiteLocation, "closestStreetAddress">
@@ -225,9 +229,9 @@ function SetSiteLocationPopup({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Set {locationName} Location</DialogTitle>
+          <DialogTitle>Set Locations</DialogTitle>
           <DialogDescription>
-            Right-click or drag the pin to set the location
+            Right-click or drag the pins to set the locations
           </DialogDescription>
         </DialogHeader>
         <ContextMenu>
@@ -266,43 +270,60 @@ function SetSiteLocationPopup({
                     );
                   }}
                   defaultCenter={{
-                    lat: siteLocation.latitude ?? DefaultLatitude,
-                    lng: siteLocation.longitude ?? DefaultLongitude,
+                    lat: locations[0]?.latitude ?? DefaultLatitude,
+                    lng: locations[0]?.longitude ?? DefaultLongitude,
                   }}
                   gestureHandling={"greedy"}
                   disableDefaultUI={true}
                 >
-                  <Marker
-                    draggable
-                    position={
-                      siteLocation.latitude && siteLocation.longitude
-                        ? {
-                            lat: siteLocation.latitude,
-                            lng: siteLocation.longitude,
-                          }
-                        : undefined
-                    }
-                    onDragEnd={(dragEvent) => {
-                      setSiteLocation({
-                        latitude: dragEvent.latLng?.lat(),
-                        longitude: dragEvent.latLng?.lng(),
-                      });
-                    }}
-                  ></Marker>
+                  {locations.map((mapLocation, index) => (
+                    <Marker
+                      key={index}
+                      label={finalLocations[index].name[0]}
+                      draggable
+                      position={
+                        mapLocation.latitude && mapLocation.longitude
+                          ? {
+                              lat: mapLocation.latitude,
+                              lng: mapLocation.longitude,
+                            }
+                          : undefined
+                      }
+                      onDragEnd={(dragEvent) => {
+                        setLocations(
+                          locations.map((innerMapLocation, innerIndex) =>
+                            innerIndex === index
+                              ? {
+                                  latitude: dragEvent.latLng?.lat(),
+                                  longitude: dragEvent.latLng?.lng(),
+                                }
+                              : innerMapLocation,
+                          ),
+                        );
+                      }}
+                    ></Marker>
+                  ))}
                 </GMap>
               </APIProvider>
             </div>
           </ContextMenuTrigger>
           <ContextMenuContent>
-            <ContextMenuItem
-              onClick={() => {
-                setSiteLocation({
-                  ...rightClickLocation,
-                });
-              }}
-            >
-              Set {locationName} Name
-            </ContextMenuItem>
+            {locations.map((_, index) => (
+              <ContextMenuItem
+                key={index}
+                onClick={() => {
+                  setLocations(
+                    locations.map((innerMapLocation, innerIndex) =>
+                      innerIndex === index
+                        ? rightClickLocation
+                        : innerMapLocation,
+                    ),
+                  );
+                }}
+              >
+                Set {finalLocations[index].name} Location
+              </ContextMenuItem>
+            ))}
           </ContextMenuContent>
         </ContextMenu>
         <DialogFooter>
@@ -312,26 +333,34 @@ function SetSiteLocationPopup({
           <DialogClose asChild>
             <Button
               onClick={async () => {
-                if (!siteLocation.longitude || !siteLocation.latitude) {
-                  setFinalLocation({});
-                  return;
-                }
-
                 const geocoder = new google.maps.Geocoder();
-                const reverseGeocodingResult = await geocoder.geocode({
-                  location: {
-                    lat: siteLocation.latitude,
-                    lng: siteLocation.longitude,
-                  },
-                });
-                setFinalLocation({
-                  ...siteLocation,
-                  closestStreetAddress:
-                    reverseGeocodingResult.results[0].formatted_address,
-                });
+
+                // Update final location for each of the
+                // locations we care about
+                for (let i = 0; i < locations.length; i++) {
+                  const longitude = locations[i].longitude,
+                    latitude = locations[i].latitude;
+
+                  if (longitude && latitude) {
+                    const reverseGeocodingResult = await geocoder.geocode({
+                      location: {
+                        lat: latitude,
+                        lng: longitude,
+                      },
+                    });
+                    finalLocations[i].setLocation({
+                      latitude,
+                      longitude,
+                      closestStreetAddress:
+                        reverseGeocodingResult.results[0].formatted_address,
+                    });
+                  } else {
+                    finalLocations[i].setLocation({});
+                  }
+                }
               }}
             >
-              Save Location
+              Save Locations
             </Button>
           </DialogClose>
         </DialogFooter>
@@ -347,12 +376,36 @@ function SiteLabelsAndInputs({
 }) {
   const idElementId = useId();
   const nameElementId = useId();
-  const addressElementId = useId();
   const parkingPriceElementId = useId();
+  const lobbyLocationElementId = useId();
   const parkingLocationTextElementId = useId();
+  const dropOffLocationElementId = useId();
 
   const [parkingLocation, setParkingLocation] = useState<PartialSiteLocation>(
     site?.parkingLocation ?? {},
+  );
+  const [dropOffLocation, setDropOffLocation] = useState<PartialSiteLocation>(
+    site?.dropOffLocation ?? {},
+  );
+  const [lobbyLocation, setLobbyLocation] = useState<PartialSiteLocation>(
+    site?.dropOffLocation ?? {},
+  );
+
+  const mapLocations = useMemo(
+    () => [
+      { name: "Lobby", location: lobbyLocation, setLocation: setLobbyLocation },
+      {
+        name: "Parking",
+        location: parkingLocation,
+        setLocation: setParkingLocation,
+      },
+      {
+        name: "Drop-Off",
+        location: dropOffLocation,
+        setLocation: setDropOffLocation,
+      },
+    ],
+    [dropOffLocation, lobbyLocation, parkingLocation],
   );
 
   return (
@@ -389,19 +442,6 @@ function SiteLabelsAndInputs({
       />
       <Label
         className="col-start-1 self-center text-right"
-        htmlFor={addressElementId}
-      >
-        Address:
-      </Label>
-      <Input
-        className="col-start-2"
-        defaultValue={site?.streetAddress}
-        required
-        name="streetAddress"
-        id={addressElementId}
-      />
-      <Label
-        className="col-start-1 self-center text-right"
         htmlFor={parkingPriceElementId}
       >
         Parking Price:
@@ -422,14 +462,35 @@ function SiteLabelsAndInputs({
       </div>
       <Label
         className="col-start-1 self-center text-right"
+        htmlFor={lobbyLocationElementId}
+      >
+        Lobby Location:
+      </Label>
+      <SetSiteLocationPopup
+        locations={mapLocations}
+        trigger={
+          <span className="relative w-full">
+            <Input
+              className="text-primary placeholder:text-primary pr-11 overflow-ellipsis"
+              value={lobbyLocation.closestStreetAddress ?? ""}
+              id={lobbyLocationElementId}
+              name="lobbyLocation.closestStreetAddress"
+              required
+              placeholder="Click to Set"
+              readOnly
+            />
+            <LocateFixed className="absolute right-[14px] top-1/2 -translate-y-1/2 h-1/2 text-primary" />
+          </span>
+        }
+      />
+      <Label
+        className="col-start-1 self-center text-right"
         htmlFor={parkingLocationTextElementId}
       >
         Parking Location:
       </Label>
       <SetSiteLocationPopup
-        locationName="Parking"
-        siteLocation={parkingLocation}
-        setSiteLocation={setParkingLocation}
+        locations={mapLocations}
         trigger={
           <span className="relative w-full">
             <Input
@@ -445,6 +506,30 @@ function SiteLabelsAndInputs({
           </span>
         }
       />
+      <Label
+        className="col-start-1 self-center text-right"
+        htmlFor={dropOffLocationElementId}
+      >
+        Drop-Off Location:
+      </Label>
+      <SetSiteLocationPopup
+        locations={mapLocations}
+        trigger={
+          <span className="relative w-full">
+            <Input
+              className="text-primary placeholder:text-primary pr-11 overflow-ellipsis"
+              value={dropOffLocation.closestStreetAddress ?? ""}
+              id={dropOffLocationElementId}
+              name="dropOffLocation.closestStreetAddress"
+              required
+              placeholder="Click to Set"
+              readOnly
+            />
+            <LocateFixed className="absolute right-[14px] top-1/2 -translate-y-1/2 h-1/2 text-primary" />
+          </span>
+        }
+      />
+
       <Input
         className="hidden"
         value={parkingLocation.longitude ?? ""}
@@ -456,6 +541,30 @@ function SiteLabelsAndInputs({
         value={parkingLocation.latitude ?? ""}
         readOnly
         name="parkingLocation.latitude"
+      />
+      <Input
+        className="hidden"
+        value={dropOffLocation.longitude ?? ""}
+        readOnly
+        name="dropOffLocation.longitude"
+      />
+      <Input
+        className="hidden"
+        value={dropOffLocation.latitude ?? ""}
+        readOnly
+        name="dropOffLocation.latitude"
+      />
+      <Input
+        className="hidden"
+        value={lobbyLocation.longitude ?? ""}
+        readOnly
+        name="lobbyLocation.longitude"
+      />
+      <Input
+        className="hidden"
+        value={lobbyLocation.latitude ?? ""}
+        readOnly
+        name="lobbyLocation.latitude"
       />
     </div>
   );

@@ -87,7 +87,10 @@ const DropdownColumn = function DropdownEdit({
 const columns: ColumnDef<z.infer<typeof AmbulatorySite>>[] = [
   { accessorKey: "id", header: "ID", size: 1 },
   { accessorKey: "name", header: "Name" },
-  { accessorKey: "streetAddress", header: "Address" },
+  {
+    accessorKey: "lobbyLocation.closestStreetAddress",
+    header: "Lobby Address",
+  },
   {
     size: 1,
     cell: ({ row }) => {
