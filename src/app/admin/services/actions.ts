@@ -1,7 +1,7 @@
 "use server";
 
 import { ServiceCacheKey } from "@/caches";
-import { BuildingType, Service, services } from "@/db";
+import { Service, services } from "@/db";
 import { revalidateTag } from "next/cache";
 
 export async function createService(formData: FormData) {
@@ -12,7 +12,7 @@ export async function createService(formData: FormData) {
     suite: (formData.get("suite") as string).split(","),
     phone: formData.get("phone") as string,
     hours: formData.get("hours") as string,
-    building: formData.get("building") as BuildingType,
+    building: formData.get("building") as string,
   };
 
   await services.insertOne(service);
@@ -49,7 +49,7 @@ export async function editService(formData: FormData) {
   if (formData.get("hours"))
     updatedService.hours = formData.get("hours") as string;
   if (formData.get("building")) {
-    updatedService.building = formData.get("building") as BuildingType;
+    updatedService.building = formData.get("building") as string;
   }
 
   await services.updateOne({ name: serviceId }, { $set: updatedService });

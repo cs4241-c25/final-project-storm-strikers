@@ -1,4 +1,4 @@
-import { getAllServicesCached } from "@/caches";
+import { getAllServicesCached, getAllSitesCached } from "@/caches";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -37,16 +37,10 @@ import { DeleteSitePopup, EditSitePopup } from "./dialogs";
 
 export default async function Services() {
   const servicesList = await getAllServicesCached();
-  //const [isOpen, setIsOpen] = useState(false); // Manage dialog visibility
+  const sitesList = await getAllSitesCached();
 
-  //const [dropdownOpen, setDropdownOpen] = useState(false);
-  // const editAction = EditSitePopup;
-  // const deleteAction = DeleteSitePopup;
-
-  // Extract unique building names
-  const buildingNames = Array.from(
-    new Set(servicesList.map((service) => service.building)),
-  );
+  // Extract unique site names
+  const siteNames = Array.from(new Set(sitesList.map((site) => site.name)));
 
   // Helper function to capitalize the first letter of a string
   const capitalizeFirstLetter = (string: string) => {
@@ -105,15 +99,15 @@ export default async function Services() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label htmlFor="building">Building</label>
+                <label htmlFor="building">Location</label>
                 <Select name="building" required>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a building" />
+                    <SelectValue placeholder="Select a location" />
                   </SelectTrigger>
                   <SelectContent>
-                    {buildingNames.map((building, index) => (
-                      <SelectItem key={index} value={building}>
-                        {capitalizeFirstLetter(building)}
+                    {siteNames.map((siteName, index) => (
+                      <SelectItem key={index} value={siteName}>
+                        {capitalizeFirstLetter(siteName)}
                       </SelectItem>
                     ))}
                   </SelectContent>

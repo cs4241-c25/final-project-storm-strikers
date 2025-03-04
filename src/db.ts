@@ -11,10 +11,7 @@ export const ambulatorySites =
   client.collection<z.infer<typeof _ambulatorySiteNoId>>("ambulatorySites");
 
 export const services = client.collection<Omit<Service, "_id">>("services");
-export const buildings = client.collection("buildings");
 export default client;
-
-export type BuildingType = "patriot" | "chestnut" | "faulkner";
 
 export interface Service {
   _id: ObjectId | string;
@@ -24,7 +21,7 @@ export interface Service {
   suite: string[];
   phone: string;
   hours: string;
-  building: BuildingType;
+  building: string;
 }
 
 export interface Building {
