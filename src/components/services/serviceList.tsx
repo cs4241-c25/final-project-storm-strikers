@@ -158,7 +158,6 @@ export default function ServiceList({
             </CardFooter>
           </Card>
         ))}
-        ;
       </div>
     </main>
   );
