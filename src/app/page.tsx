@@ -22,7 +22,7 @@ export default async function Home() {
       <div className="flex flex-col min-h-screen">
         <ServiceList initialServices={serializedServices} sites={sitesList} />
       </div>
-      <div className="flex flex-col min-h-screen">
+      <div className="mt-8 flex flex-col items-center gap-4">
         <ParkingNavigation />
       </div>
     </div>
