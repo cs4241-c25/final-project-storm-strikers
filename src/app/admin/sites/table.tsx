@@ -87,13 +87,25 @@ const DropdownColumn = function DropdownEdit({
 const columns: ColumnDef<z.infer<typeof AmbulatorySite>>[] = [
   { accessorKey: "id", header: "ID", size: 1 },
   { accessorKey: "name", header: "Name" },
-  { accessorKey: "streetAddress", header: "Address" },
   {
-    accessorFn: ({ parkingPrice }) =>
-      parkingPrice.toLocaleString(undefined, {
-        style: "currency",
-        currency: "USD",
-      }),
+    accessorKey: "lobbyLocation.closestStreetAddress",
+    header: "Lobby Address",
+  },
+  {
+    size: 1,
+    cell: ({ row }) => {
+      return (
+        <div className="flex flex-row justify-between gap-0.5">
+          <p>
+            {row.original.parkingPrice.toLocaleString(undefined, {
+              style: "currency",
+              currency: "USD",
+            })}
+          </p>
+          <p>/hr</p>
+        </div>
+      );
+    },
     header: "Parking Price",
   },
   {
@@ -125,6 +137,9 @@ export default function SiteTable({
   const table = useReactTable<z.infer<typeof AmbulatorySite>>({
     data: sitesShallowCopy,
     columns,
+    defaultColumn: {
+      size: NaN,
+    },
     getCoreRowModel: getCoreRowModel(),
   });
 

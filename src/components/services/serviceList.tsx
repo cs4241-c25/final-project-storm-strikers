@@ -18,30 +18,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Service } from "@/db";
-import { Building } from "@/lib/models/building";
+import { AmbulatorySite } from "@/types";
 import { useState } from "react";
+import type { z } from "zod";
 
 export default function ServiceList({
   initialServices,
-  building,
+  sites,
 }: {
   initialServices: Service[];
-  building: Building[];
+  sites: z.infer<typeof AmbulatorySite>[];
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBuilding, setSelectedBuilding] = useState("all");
 
   // Helper function to open Google Maps with directions to a destination
-  const openGoogleMaps = (destination: { lat: number; lng: number }) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${destination.lat},${destination.lng}`;
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const openGoogleMaps = (location: {
+    latitude: number;
+    longitude: number;
+  }) => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`;
     console.log("Opening Google Maps with URL:", url);
     window.open(url, "_blank");
   };
 
-  // Extract unique building names
-  const buildingNames = Array.from(
-    new Set(initialServices.map((service) => service.building)),
-  );
+  // Extract unique site names instead of building names
+  const siteNames = Array.from(new Set(sites.map((site) => site.name)));
 
   // Helper function to capitalize the first letter of a string
   const capitalizeFirstLetter = (string: string) => {
@@ -57,7 +60,11 @@ export default function ServiceList({
 
     const matchesBuilding =
       selectedBuilding === "all" ||
-      service.building.toLowerCase() === selectedBuilding.toLowerCase();
+      sites.some(
+        (site) =>
+          site.name.toLowerCase() === selectedBuilding.toLowerCase() &&
+          site.name.toLowerCase() === service.building.toLowerCase(),
+      );
 
     return matchesSearch && matchesBuilding;
   });
@@ -78,13 +85,13 @@ export default function ServiceList({
         </div>
         <Select value={selectedBuilding} onValueChange={setSelectedBuilding}>
           <SelectTrigger className="w-full md:w-[200px]">
-            <SelectValue placeholder="Filter by building" />
+            <SelectValue placeholder="Filter by location" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Buildings</SelectItem>
-            {buildingNames.map((building, index) => (
-              <SelectItem key={index} value={building}>
-                {capitalizeFirstLetter(building)}
+            <SelectItem value="all">All Locations</SelectItem>
+            {siteNames.map((siteName, index) => (
+              <SelectItem key={index} value={siteName.toLowerCase()}>
+                {capitalizeFirstLetter(siteName)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -115,19 +122,19 @@ export default function ServiceList({
             <CardFooter className="flex justify-between">
               <Button
                 onClick={() => {
-                  const buildingObj = building.find(
-                    (b) =>
-                      b.name.toLowerCase() === service.building.toLowerCase(),
+                  const siteObj = sites.find(
+                    (s) =>
+                      s.name.toLowerCase() === service.building.toLowerCase(),
                   );
-                  console.log("Selected Building for Parking:", buildingObj);
+                  console.log("Selected Site for Parking:", siteObj);
 
-                  if (buildingObj && buildingObj.parking) {
+                  if (siteObj) {
                     openGoogleMaps({
-                      lat: buildingObj.parking.lat,
-                      lng: buildingObj.parking.lng,
+                      latitude: siteObj.parkingLocation.latitude,
+                      longitude: siteObj.parkingLocation.longitude,
                     });
                   } else {
-                    alert("Parking location not found for this building.");
+                    alert("Parking location not found for this site.");
                   }
                 }}
               >
@@ -136,19 +143,19 @@ export default function ServiceList({
 
               <Button
                 onClick={() => {
-                  const buildingObj = building.find(
-                    (b) =>
-                      b.name.toLowerCase() === service.building.toLowerCase(),
+                  const siteObj = sites.find(
+                    (s) =>
+                      s.name.toLowerCase() === service.building.toLowerCase(),
                   );
-                  console.log("Selected Building for Drop-Off:", buildingObj);
+                  console.log("Selected Site for Drop-Off:", siteObj);
 
-                  if (buildingObj && buildingObj.dropOff) {
+                  if (siteObj) {
                     openGoogleMaps({
-                      lat: buildingObj.dropOff.lat,
-                      lng: buildingObj.dropOff.lng,
+                      latitude: siteObj.dropOffLocation.latitude,
+                      longitude: siteObj.dropOffLocation.longitude,
                     });
                   } else {
-                    alert("Drop-off location not found for this building.");
+                    alert("Drop-off location not found for this site.");
                   }
                 }}
                 variant="secondary"
@@ -158,7 +165,6 @@ export default function ServiceList({
             </CardFooter>
           </Card>
         ))}
-        ;
       </div>
     </main>
   );

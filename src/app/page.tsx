@@ -1,7 +1,10 @@
 import { getAllServicesCached, getAllSitesCached } from "@/caches";
 import ServiceList from "@/components/services/serviceList";
 import { Service } from "@/db";
+<<<<<<< HEAD
 import ParkingNavigation from "@/components/services/parkingNavigation";
+=======
+>>>>>>> 37884464d8a1ca4807099a16596885ddd1800f20
 
 function serializeServices(servicesToSerialize: Service[]) {
   return servicesToSerialize.map((service) => ({
@@ -18,6 +21,7 @@ export default async function Home() {
   const serializedServices = serializeServices(servicesList);
 
   return (
+<<<<<<< HEAD
     <div>
       <div className="flex flex-col min-h-screen">
         <ServiceList initialServices={serializedServices} sites={sitesList} />
@@ -25,6 +29,10 @@ export default async function Home() {
       <div className="flex flex-col min-h-screen">
         <ParkingNavigation />
       </div>
+=======
+    <div className="flex flex-col min-h-screen">
+      <ServiceList initialServices={serializedServices} sites={sitesList} />
+>>>>>>> 37884464d8a1ca4807099a16596885ddd1800f20
     </div>
   );
 }

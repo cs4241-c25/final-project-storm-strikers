@@ -4,32 +4,32 @@ import { DirectionsRenderer } from "@react-google-maps/api";
 import { useEffect, useState } from "react";
 
 export default function Directions({
-  origin,
+  originLocation,
   destination,
 }: {
-  origin: { lat: number; lng: number };
+  originLocation: { lat: number; lng: number };
   destination: { lat: number; lng: number };
 }) {
   const [directions, setDirections] =
     useState<google.maps.DirectionsResult | null>(null);
 
   useEffect(() => {
-    if (!origin || !destination) return;
+    if (!originLocation || !destination) return;
 
     const service = new google.maps.DirectionsService();
     service.route(
       {
-        origin,
+        origin: originLocation,
         destination,
         travelMode: google.maps.TravelMode.DRIVING,
       },
-      (result, status) => {
-        if (status === google.maps.DirectionsStatus.OK) {
+      (result, requestStatus) => {
+        if (requestStatus === google.maps.DirectionsStatus.OK) {
           setDirections(result);
         }
       },
     );
-  }, [origin, destination]);
+  }, [originLocation, destination]);
 
   return directions ? <DirectionsRenderer directions={directions} /> : null;
 }

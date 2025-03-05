@@ -18,7 +18,7 @@ export const buildings: Record<BuildingType, Building> = {
     address: "45 Francis St, Boston, MA 02115",
     coordinates: { lat: 42.33624, lng: -71.10658 },
     parking: {
-      lat: 42.33538,
+      lat: 42.33537,
       lng: -71.10621,
       rates: "$5 per hour, max $20 per day",
     },
