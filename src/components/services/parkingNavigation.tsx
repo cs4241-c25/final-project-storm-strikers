@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function ParkingNavigation() {
   // State for storing the marked car location
@@ -17,7 +18,7 @@ export default function ParkingNavigation() {
   // 1) "Mark your car" - Saves user's current location to state & localStorage
   const handleMarkCar = () => {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by this browser.");
+      toast.error("Geolocation is not supported by this browser.");
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -28,10 +29,10 @@ export default function ParkingNavigation() {
         };
         setCarLocation(newLocation);
         localStorage.setItem("carLocation", JSON.stringify(newLocation));
-        alert("Car location marked!");
+        toast.success("Car location marked!");
       },
-      (error) => {
-        alert("Error getting your location. Please try again.");
+      () => {
+        toast.error("Unable to retrieve your location.");
       }
     );
   };
@@ -39,11 +40,11 @@ export default function ParkingNavigation() {
   // 2) "Guide to parking lot" - Opens Google Maps for directions to the marked location
   const handleGuideToParkingLot = () => {
     if (!carLocation) {
-      alert("No car location is marked yet!");
+      toast.error("No car location is marked yet!");
       return;
     }
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by this browser.");
+      toast.error("Geolocation is not supported by this browser.");
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -54,8 +55,8 @@ export default function ParkingNavigation() {
         const directionsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${carLocation.lat},${carLocation.lng}`;
         window.open(directionsUrl, "_blank");
       },
-      (error) => {
-        alert("Error getting your current location. Please try again.");
+      () => {
+        toast.error("Error getting your current location. Please try again.");
       }
     );
   };
