@@ -43,9 +43,9 @@ export default async function Services() {
   const siteNames = Array.from(new Set(sitesList.map((site) => site.name)));
 
   return (
-    <div className="space-y-4 p-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Services Directory</h1>
+    <div className="flex-grow container mx-auto px-4 py-8 gap-5">
+      <div className="flex justify-between items-center pb-4">
+        <h1 className="text-3xl font-bold">Services Directory</h1>
 
         {/* Dialog for Adding a Service */}
         <Dialog>
@@ -120,7 +120,7 @@ export default async function Services() {
         </Dialog>
       </div>
 
-      <Table>
+      <Table className="rounded-md border">
         <TableHeader>
           <TableRow>
             <TableHead className="font-bold">Name</TableHead>
@@ -130,6 +130,7 @@ export default async function Services() {
             <TableHead className="font-bold">Phone</TableHead>
             <TableHead className="font-bold">Hours</TableHead>
             <TableHead className="font-bold">Building</TableHead>
+            <TableHead className="font-bold"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

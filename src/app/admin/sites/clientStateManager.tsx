@@ -159,9 +159,9 @@ export default function ClientStateManager({
   );
 
   return (
-    <div className="flex flex-col grow m-3 gap-5">
+    <div className="flex flex-col m-3 gap-5 flex-grow container mx-auto px-4 py-8">
       <div className="flex flex-row justify-between items-end">
-        <h1 className="text-2xl font-bold">Ambulatory Sites</h1>
+        <h1 className="text-3xl font-bold">Ambulatory Sites</h1>
         <AddSiteDialog
           trigger={
             <Button className="self-end">
