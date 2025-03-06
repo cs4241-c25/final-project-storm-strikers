@@ -14,7 +14,7 @@ export default function ParkingNavigation() {
   // Load saved location from localStorage when the component mounts
   useEffect(() => {
     const savedLocation = localStorage.getItem("carLocation");
-    if (savedLocation) {
+    if (savedLocation && savedLocation !== "null") {
       setCarLocation(JSON.parse(savedLocation));
     }
   }, []);
@@ -54,21 +54,30 @@ export default function ParkingNavigation() {
       const position = await getCurrentLocation();
       const userLat = position.coords.latitude;
       const userLng = position.coords.longitude;
+
+      // Prevent opening Google Maps if user is at the same location
+      const isSameLocation =
+        Math.abs(userLat - carLocation.lat) < 0.0001 &&
+        Math.abs(userLng - carLocation.lng) < 0.0001;
+
+      if (isSameLocation) {
+        toast.error("You are already at your marked car location.");
+        return;
+      }
+
       const directionsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${carLocation.lat},${carLocation.lng}`;
-      window.open(directionsUrl, "_blank"); 
+      window.open(directionsUrl, "_blank");
     } catch (error) {
       toast.error("Error getting your current location. Please try again.");
     }
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-4">
-      <Button onClick={handleMarkCar}>Mark your Car</Button>
-
-      {carLocation && (
-        <Button onClick={handleGuideToParkingLot} variant="secondary">
-          Guide to Parking Lot
-        </Button>
+    <div className="mt-8 flex flex-col items-center gap-4">
+      {!carLocation ? (
+        <Button onClick={handleMarkCar}>Mark Your Car</Button>
+      ) : (
+        <Button onClick={handleGuideToParkingLot}>Guide to Parking Lot</Button>
       )}
     </div>
   );
