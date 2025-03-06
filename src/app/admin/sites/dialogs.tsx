@@ -231,7 +231,7 @@ function SetSiteLocationPopup({
         <DialogHeader>
           <DialogTitle>Set Locations</DialogTitle>
           <DialogDescription>
-            Right-click or drag the pins to set the locations
+            Right-click to place or drag the pins to set the locations
           </DialogDescription>
         </DialogHeader>
         <ContextMenu>
@@ -246,6 +246,18 @@ function SetSiteLocationPopup({
                 <GMap
                   id={mapId}
                   defaultZoom={15}
+                  styles={[
+                    {
+                      featureType: "poi",
+                      elementType: "labels",
+                      stylers: [{ visibility: "off" }],
+                    },
+                    {
+                      featureType: "transit",
+                      elementType: "labels",
+                      stylers: [{ visibility: "off" }],
+                    },
+                  ]}
                   onContextmenu={(contextMenuEvent) => {
                     if (
                       !contextMenuEvent.domEvent ||
@@ -287,7 +299,10 @@ function SetSiteLocationPopup({
                               lat: mapLocation.latitude,
                               lng: mapLocation.longitude,
                             }
-                          : undefined
+                          : {
+                              lat: DefaultLatitude,
+                              lng: DefaultLongitude,
+                            }
                       }
                       onDragEnd={(dragEvent) => {
                         setLocations(
@@ -301,7 +316,7 @@ function SetSiteLocationPopup({
                           ),
                         );
                       }}
-                    ></Marker>
+                    />
                   ))}
                 </GMap>
               </APIProvider>
