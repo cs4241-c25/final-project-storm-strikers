@@ -42,11 +42,6 @@ export default async function Services() {
   // Extract unique site names
   const siteNames = Array.from(new Set(sitesList.map((site) => site.name)));
 
-  // Helper function to capitalize the first letter of a string
-  const capitalizeFirstLetter = (string: string) => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  };
-
   return (
     <div className="space-y-4 p-4">
       <div className="flex justify-between items-center">
@@ -106,8 +101,12 @@ export default async function Services() {
                   </SelectTrigger>
                   <SelectContent>
                     {siteNames.map((siteName, index) => (
-                      <SelectItem key={index} value={siteName}>
-                        {capitalizeFirstLetter(siteName)}
+                      <SelectItem
+                        key={index}
+                        value={siteName}
+                        className="capitalize"
+                      >
+                        {siteName}
                       </SelectItem>
                     ))}
                   </SelectContent>

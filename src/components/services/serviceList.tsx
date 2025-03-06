@@ -46,11 +46,6 @@ export default function ServiceList({
   // Extract unique site names instead of building names
   const siteNames = Array.from(new Set(sites.map((site) => site.name)));
 
-  // Helper function to capitalize the first letter of a string
-  const capitalizeFirstLetter = (string: string) => {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  };
-
   const filteredServices = initialServices.filter((service) => {
     const matchesSearch =
       service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -90,15 +85,19 @@ export default function ServiceList({
           <SelectContent>
             <SelectItem value="all">All Locations</SelectItem>
             {siteNames.map((siteName, index) => (
-              <SelectItem key={index} value={siteName.toLowerCase()}>
-                {capitalizeFirstLetter(siteName)}
+              <SelectItem
+                key={index}
+                value={siteName.toLowerCase()}
+                className="capitalize"
+              >
+                {siteName}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 capitalize">
         {filteredServices.map((service) => (
           <Card key={service._id.toString()}>
             <CardHeader>

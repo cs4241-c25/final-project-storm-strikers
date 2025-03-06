@@ -42,21 +42,23 @@ export default function RootLayout({
                 </g>
               </svg>
               <div className="flex flex-col">
-                <h1 className="text-xl font-semibold">
-                  Brigham and Women&apos;s Hospital
-                </h1>
-                <h2 className="text-sm text-muted">
-                  Founding Member, Mass General Brigham
-                </h2>
+                <Link href="/">
+                  <h1 className="text-base md:text-xl font-semibold">
+                    Brigham and Women&apos;s Hospital
+                  </h1>
+                  <h2 className="text-xs md:text-sm text-muted">
+                    Founding Member, Mass General Brigham
+                  </h2>
+                </Link>
               </div>
             </div>
             <nav>
-              <ul className="flex space-x-4 items-center">
-                <li>
+              <ul className="flex space-x-4 items-center ">
+                {/* <li className="hidden md:block text-md">
                   <Link href="/" className="hover:underline flex items-center">
                     Home
                   </Link>
-                </li>
+                </li> */}
                 <li>
                   <AuthButton />
                 </li>

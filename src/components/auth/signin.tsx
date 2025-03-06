@@ -8,7 +8,7 @@ export default async function SignIn() {
         await signIn("github");
       }}
     >
-      <button type="submit" className="text-xl">
+      <button type="submit" className="text-sm md:text-lg">
         Sign In
       </button>
     </form>
