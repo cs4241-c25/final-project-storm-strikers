@@ -39,15 +39,14 @@ export default function ServiceList({
     window.open(url, "_blank");
   };
 
-  const filteredServices = initialServices.filter((service) => {
-    const matchesSearch =
-      service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      service.specialties.some((spec) =>
-        spec.toLowerCase().includes(searchQuery.toLowerCase()),
-      );
-
-    return matchesSearch;
-  });
+  const filteredServices = initialServices.filter(
+    (service) =>
+      (service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        service.specialties.some((spec) =>
+          spec.toLowerCase().includes(searchQuery.toLowerCase()),
+        )) &&
+      service.building,
+  );
 
   return (
     <main className="flex-grow container mx-auto px-4 py-8">
@@ -99,10 +98,14 @@ export default function ServiceList({
               </CardDescription>
             </CardHeader>
             <CardContent className="overflow-auto text-ellipsis">
-              <p>
-                <strong>Location:</strong> Floor {service.floor?.join(", ")},
-                Suite {service.suite?.join(", ")}
-              </p>
+              {(service.suite || service.floor) && (
+                <p>
+                  <strong>Location:</strong>{" "}
+                  {service.floor ? `Floor ${service.floor.join(", ")}` : ""}
+                  {service.floor && service.suite ? ", " : ""}
+                  {service.suite ? `Suite ${service.suite.join(", ")}` : ""}
+                </p>
+              )}
               <p>
                 <strong>Hours:</strong> {service.hours}
               </p>
