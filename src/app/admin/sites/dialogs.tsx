@@ -471,13 +471,15 @@ function SiteLabelsAndInputs({
         trigger={
           <span className="relative w-full">
             <Input
-              className="text-primary placeholder:text-primary pr-11 overflow-ellipsis"
+              className="text-primary placeholder:text-primary pr-11 overflow-ellipsis cursor-default"
               value={lobbyLocation.closestStreetAddress ?? ""}
               id={lobbyLocationElementId}
               name="lobbyLocation.closestStreetAddress"
-              required
               placeholder="Click to Set"
-              readOnly
+              required
+              onChange={() => {
+                /* Ignored */
+              }}
             />
             <LocateFixed className="absolute right-[14px] top-1/2 -translate-y-1/2 h-1/2 text-primary" />
           </span>
@@ -494,13 +496,15 @@ function SiteLabelsAndInputs({
         trigger={
           <span className="relative w-full">
             <Input
-              className="text-primary placeholder:text-primary pr-11 overflow-ellipsis"
+              className="text-primary placeholder:text-primary pr-11 overflow-ellipsis cursor-default"
               value={parkingLocation.closestStreetAddress ?? ""}
               id={parkingLocationTextElementId}
               name="parkingLocation.closestStreetAddress"
-              required
               placeholder="Click to Set"
-              readOnly
+              required
+              onChange={() => {
+                /* Ignored */
+              }}
             />
             <LocateFixed className="absolute right-[14px] top-1/2 -translate-y-1/2 h-1/2 text-primary" />
           </span>
@@ -517,13 +521,15 @@ function SiteLabelsAndInputs({
         trigger={
           <span className="relative w-full">
             <Input
-              className="text-primary placeholder:text-primary pr-11 overflow-ellipsis"
+              className="text-primary placeholder:text-primary pr-11 overflow-ellipsis cursor-default"
               value={dropOffLocation.closestStreetAddress ?? ""}
               id={dropOffLocationElementId}
               name="dropOffLocation.closestStreetAddress"
-              required
               placeholder="Click to Set"
-              readOnly
+              required
+              onChange={() => {
+                /* Ignore, so that we still have this as editable */
+              }}
             />
             <LocateFixed className="absolute right-[14px] top-1/2 -translate-y-1/2 h-1/2 text-primary" />
           </span>
@@ -577,8 +583,11 @@ export function AddSiteDialog({
   trigger: ReactElement<ButtonHTMLAttributes<HTMLButtonElement>>;
   action: (input: FormData) => void;
 }) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
   return (
-    <Dialog>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -587,15 +596,24 @@ export function AddSiteDialog({
             Enter the details of the new site:
           </DialogDescription>
         </DialogHeader>
-        <form action={action} className="contents">
+        <form action={action} className="contents" ref={formRef}>
           <SiteLabelsAndInputs />
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <DialogClose asChild type="submit">
-              <Button>Create Site</Button>
-            </DialogClose>
+            <Button
+              type="submit"
+              onClick={() => {
+                if (!formRef.current || !formRef.current.checkValidity()) {
+                  return;
+                }
+
+                setDialogOpen(false);
+              }}
+            >
+              Create Site
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -612,8 +630,11 @@ export function EditSitePopup({
   trigger: React.ReactElement<React.ButtonHTMLAttributes<HTMLButtonElement>>;
   action: (input: FormData) => void;
 }) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
   return (
-    <Dialog>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         {React.cloneElement(trigger, {
           ...trigger.props,
@@ -632,15 +653,24 @@ export function EditSitePopup({
             <span className="font-semibold">{site.name}</span>:
           </DialogDescription>
         </DialogHeader>
-        <form className="contents" action={action}>
+        <form className="contents" action={action} ref={formRef}>
           <SiteLabelsAndInputs site={site} />
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <DialogClose asChild type="submit">
-              <Button>Save Changes</Button>
-            </DialogClose>
+            <Button
+              type="submit"
+              onClick={() => {
+                if (!formRef.current || formRef.current.checkValidity()) {
+                  return;
+                }
+
+                setDialogOpen(false);
+              }}
+            >
+              Save Changes
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
