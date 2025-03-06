@@ -97,16 +97,18 @@ export default function ServiceList({
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 capitalize">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 capitalize overflow-auto text-ellipsis">
         {filteredServices.map((service) => (
           <Card key={service._id.toString()}>
             <CardHeader>
-              <CardTitle>{service.name}</CardTitle>
-              <CardDescription>
+              <CardTitle className="overflow-auto text-ellipsis">
+                {service.name}
+              </CardTitle>
+              <CardDescription className="overflow-auto text-ellipsis">
                 {service.specialities.join(", ")}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="overflow-auto text-ellipsis">
               <p>
                 <strong>Location:</strong> Floor {service.floor.join(", ")},
                 Suite {service.suite.join(", ")}
