@@ -17,51 +17,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Service } from "@/db";
-import { AmbulatorySite } from "@/types";
+import type { Service } from "@/types";
 import { useState } from "react";
 import type { z } from "zod";
 
 export default function ServiceList({
   initialServices,
-  sites,
 }: {
-  initialServices: Service[];
-  sites: z.infer<typeof AmbulatorySite>[];
+  initialServices: z.infer<typeof Service>[];
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBuilding, setSelectedBuilding] = useState("all");
 
   // Helper function to open Google Maps with directions to a destination
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const openGoogleMaps = (location: {
+  const openGoogleMaps = (mapLocation: {
     latitude: number;
     longitude: number;
   }) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`;
-    console.log("Opening Google Maps with URL:", url);
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${mapLocation.latitude},${mapLocation.longitude}`;
     window.open(url, "_blank");
   };
-
-  // Extract unique site names instead of building names
-  const siteNames = Array.from(new Set(sites.map((site) => site.name)));
 
   const filteredServices = initialServices.filter((service) => {
     const matchesSearch =
       service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      service.specialities.some((spec) =>
+      service.specialties.some((spec) =>
         spec.toLowerCase().includes(searchQuery.toLowerCase()),
       );
 
-    const matchesBuilding =
-      selectedBuilding === "all" ||
-      sites.some(
-        (site) =>
-          site.name.toLowerCase() === selectedBuilding.toLowerCase() &&
-          site.name.toLowerCase() === service.building.toLowerCase(),
-      );
-
-    return matchesSearch && matchesBuilding;
+    return matchesSearch;
   });
 
   return (
@@ -84,12 +68,14 @@ export default function ServiceList({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Locations</SelectItem>
-            {siteNames.map((siteName, index) => (
-              <SelectItem
-                key={index}
-                value={siteName.toLowerCase()}
-                className="capitalize"
-              >
+            {[
+              ...new Set(
+                initialServices
+                  .map((service) => service.building?.name)
+                  .filter((maybeName) => maybeName !== undefined),
+              ).values(),
+            ].map((siteName, index) => (
+              <SelectItem key={index} value={siteName} className="capitalize">
                 {siteName}
               </SelectItem>
             ))}
@@ -99,19 +85,19 @@ export default function ServiceList({
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 capitalize overflow-auto text-ellipsis">
         {filteredServices.map((service) => (
-          <Card key={service._id.toString()}>
+          <Card key={service.id.toString()}>
             <CardHeader>
               <CardTitle className="overflow-auto text-ellipsis">
                 {service.name}
               </CardTitle>
               <CardDescription className="overflow-auto text-ellipsis">
-                {service.specialities.join(", ")}
+                {service.specialties.join(", ")}
               </CardDescription>
             </CardHeader>
             <CardContent className="overflow-auto text-ellipsis">
               <p>
-                <strong>Location:</strong> Floor {service.floor.join(", ")},
-                Suite {service.suite.join(", ")}
+                <strong>Location:</strong> Floor {service.floor?.join(", ")},
+                Suite {service.suite?.join(", ")}
               </p>
               <p>
                 <strong>Hours:</strong> {service.hours}
@@ -123,19 +109,11 @@ export default function ServiceList({
             <CardFooter className="flex justify-between">
               <Button
                 onClick={() => {
-                  const siteObj = sites.find(
-                    (s) =>
-                      s.name.toLowerCase() === service.building.toLowerCase(),
-                  );
-                  console.log("Selected Site for Parking:", siteObj);
-
-                  if (siteObj) {
+                  if (service.building) {
                     openGoogleMaps({
-                      latitude: siteObj.parkingLocation.latitude,
-                      longitude: siteObj.parkingLocation.longitude,
+                      latitude: service.building.parkingLocation.latitude,
+                      longitude: service.building.parkingLocation.longitude,
                     });
-                  } else {
-                    alert("Parking location not found for this site.");
                   }
                 }}
               >
@@ -144,19 +122,11 @@ export default function ServiceList({
 
               <Button
                 onClick={() => {
-                  const siteObj = sites.find(
-                    (s) =>
-                      s.name.toLowerCase() === service.building.toLowerCase(),
-                  );
-                  console.log("Selected Site for Drop-Off:", siteObj);
-
-                  if (siteObj) {
+                  if (service.building) {
                     openGoogleMaps({
-                      latitude: siteObj.dropOffLocation.latitude,
-                      longitude: siteObj.dropOffLocation.longitude,
+                      latitude: service.building.dropOffLocation.latitude,
+                      longitude: service.building.dropOffLocation.longitude,
                     });
-                  } else {
-                    alert("Drop-off location not found for this site.");
                   }
                 }}
                 variant="secondary"

@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { AmbulatorySite } from "@/types";
+import type { Service } from "@/types";
 import {
   ColumnDef,
   flexRender,
@@ -26,7 +26,7 @@ import {
 import { MoreHorizontal, Pencil, Trash } from "lucide-react";
 import { createContext, use, useEffect, useMemo, useState } from "react";
 import type { z } from "zod";
-import { DeleteSitePopup, EditSitePopup } from "./dialogs";
+import { DeleteServicePopup, EditServicePopup } from "./dialogs";
 
 const EditActionContext = createContext<(input: FormData) => void>(() => {
   /* ignore */
@@ -37,16 +37,16 @@ const DeleteActionContext = createContext<(input: FormData) => void>(() => {
 });
 
 const DropdownColumn = function DropdownEdit({
-  site,
+  service,
 }: {
-  site: z.infer<typeof AmbulatorySite>;
+  service: z.infer<typeof Service>;
 }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const editAction = use(EditActionContext);
   const deleteAction = use(DeleteActionContext);
 
-  // when the site changes, close the dropdown
-  useEffect(() => setDropdownOpen(false), [site]);
+  // when the service changes, close the dropdown
+  useEffect(() => setDropdownOpen(false), [service]);
 
   return (
     <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -58,24 +58,24 @@ const DropdownColumn = function DropdownEdit({
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-        <EditSitePopup
-          site={site}
+        <EditServicePopup
+          service={service}
           trigger={
             <DropdownMenuItem>
               <Pencil />
-              Edit Site
+              Edit Service
             </DropdownMenuItem>
           }
           action={editAction}
         />
 
-        <DeleteSitePopup
-          site={site}
+        <DeleteServicePopup
+          service={service}
           action={deleteAction}
           trigger={
             <DropdownMenuItem className="text-destructive focus:text-destructive">
               <Trash className="text-destructive" />
-              Delete Site
+              Delete Service
             </DropdownMenuItem>
           }
         />
@@ -84,58 +84,61 @@ const DropdownColumn = function DropdownEdit({
   );
 };
 
-const columns: ColumnDef<z.infer<typeof AmbulatorySite>>[] = [
+const columns: ColumnDef<z.infer<typeof Service>>[] = [
   { accessorKey: "id", header: "ID", size: 1 },
   { accessorKey: "name", header: "Name" },
   {
-    accessorKey: "lobbyLocation.closestStreetAddress",
-    header: "Lobby Address",
+    accessorFn: (row) => row.specialties.join(","),
+    header: "Specialties",
   },
   {
-    size: 1,
-    cell: ({ row }) => {
-      return (
-        <div className="flex flex-row justify-between gap-0.5">
-          <p>
-            {row.original.parkingPrice.toLocaleString(undefined, {
-              style: "currency",
-              currency: "USD",
-            })}
-          </p>
-          <p>/hr</p>
-        </div>
-      );
-    },
-    header: "Parking Price",
+    accessorFn: (row) => row.floor?.join(",") ?? "",
+    header: "Floor",
+  },
+  {
+    accessorFn: (row) => row.suite?.join(",") ?? "",
+    header: "Suite",
+  },
+  {
+    accessorKey: "phone",
+    header: "Phone",
+  },
+  {
+    accessorKey: "hours",
+    header: "Hours",
+  },
+  {
+    accessorFn: (row) => row.building?.name ?? "",
+    header: "Building",
   },
   {
     header: "",
     id: "actions",
     size: 1,
     cell: ({ row }) => {
-      return <DropdownColumn site={row.original} />;
+      return <DropdownColumn service={row.original} />;
     },
   },
 ];
 
-export default function SiteTable({
-  sites,
+export default function ServiceTable({
+  services,
   className,
   editAction,
   deleteAction,
 }: {
-  sites: z.infer<typeof AmbulatorySite>[];
+  services: z.infer<typeof Service>[];
   className: string | undefined;
   editAction: (input: FormData) => void;
   deleteAction: (input: FormData) => void;
 }) {
   // For some reason, the updates don't seem to reach the table
   // unless we do this...
-  const [sitesShallowCopy, setSitesShallowCopy] = useState(sites);
-  useMemo(() => setSitesShallowCopy(sites), [sites]);
+  const [servicesShallowCopy, setServicesShallowCopy] = useState(services);
+  useMemo(() => setServicesShallowCopy(services), [services]);
 
-  const table = useReactTable<z.infer<typeof AmbulatorySite>>({
-    data: sitesShallowCopy,
+  const table = useReactTable<z.infer<typeof Service>>({
+    data: servicesShallowCopy,
     columns,
     defaultColumn: {
       size: NaN,

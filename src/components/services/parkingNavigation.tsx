@@ -5,7 +5,10 @@ import { toast } from "sonner";
 
 export default function ParkingNavigation() {
   // State for storing the marked car location
-  const [carLocation, setCarLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [carLocation, setCarLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
 
   // Load saved location from localStorage when the component mounts
   useEffect(() => {
@@ -33,7 +36,7 @@ export default function ParkingNavigation() {
       },
       () => {
         toast.error("Unable to retrieve your location.");
-      }
+      },
     );
   };
 
@@ -57,7 +60,7 @@ export default function ParkingNavigation() {
       },
       () => {
         toast.error("Error getting your current location. Please try again.");
-      }
+      },
     );
   };
 

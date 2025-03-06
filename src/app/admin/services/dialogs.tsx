@@ -24,10 +24,23 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Service } from "@/db";
-import React, { useId } from "react";
+import { Service } from "@/types";
+import React, {
+  ButtonHTMLAttributes,
+  Fragment,
+  ReactElement,
+  useId,
+  useRef,
+  useState,
+} from "react";
+import { z } from "zod";
 
-function SiteLabelsAndInputs({ service }: { service?: Service }) {
+function ServiceLabelsAndInputs({
+  service,
+}: {
+  service?: Partial<z.infer<typeof Service>>;
+}) {
+  const idElementId = useId();
   const nameElementId = useId();
   const specialtiesElementId = useId();
   const floorElementId = useId();
@@ -38,6 +51,24 @@ function SiteLabelsAndInputs({ service }: { service?: Service }) {
 
   return (
     <div className="grid grid-cols-[min-content_auto] gap-x-5 gap-y-2">
+      {service?.id && (
+        <Fragment>
+          <Label
+            className="col-start-1 self-center text-right"
+            htmlFor={idElementId}
+          >
+            ID:
+          </Label>
+          <Input
+            className="col-start-2 cursor-not-allowed opacity-50"
+            value={service.id}
+            name="id"
+            readOnly
+            id={idElementId}
+          />
+        </Fragment>
+      )}
+
       <Label
         className="col-start-1 self-center text-right"
         htmlFor={nameElementId}
@@ -59,7 +90,7 @@ function SiteLabelsAndInputs({ service }: { service?: Service }) {
       </Label>
       <Input
         className="col-start-2"
-        defaultValue={service?.specialities}
+        defaultValue={service?.specialties}
         required
         name="specialties"
         id={specialtiesElementId}
@@ -70,18 +101,14 @@ function SiteLabelsAndInputs({ service }: { service?: Service }) {
       >
         Floor:
       </Label>
-      <div className="relative col-start-2">
-        <span className="absolute left-2 top-1/2 -translate-y-1/2">$</span>
-        <Input
-          className="pl-6"
-          defaultValue={service?.floor}
-          type="number"
-          step={0.01}
-          required
-          name="floor"
-          id={floorElementId}
-        />
-      </div>
+      <Input
+        className="relative col-start-2"
+        defaultValue={service?.floor}
+        type="number"
+        step={0.01}
+        name="floor"
+        id={floorElementId}
+      />
       <Label
         className="col-start-1 self-center text-right"
         htmlFor={suiteElementId}
@@ -91,7 +118,6 @@ function SiteLabelsAndInputs({ service }: { service?: Service }) {
       <Input
         className="col-start-2"
         defaultValue={service?.suite}
-        required
         name="suite"
         id={suiteElementId}
       />
@@ -129,8 +155,7 @@ function SiteLabelsAndInputs({ service }: { service?: Service }) {
       </Label>
       <Input
         className="col-start-2"
-        defaultValue={service?.building}
-        required
+        defaultValue={service?.building?.id}
         name="building"
         id={buildingElementId}
       />
@@ -138,17 +163,65 @@ function SiteLabelsAndInputs({ service }: { service?: Service }) {
   );
 }
 
-export function EditSitePopup({
+export function AddServiceDialog({
+  trigger,
+  action,
+}: {
+  trigger: ReactElement<ButtonHTMLAttributes<HTMLButtonElement>>;
+  action: (input: FormData) => void;
+}) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  return (
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create Service</DialogTitle>
+          <DialogDescription>
+            Enter the details of the new service:
+          </DialogDescription>
+        </DialogHeader>
+        <form action={action} className="contents" ref={formRef}>
+          <ServiceLabelsAndInputs />
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              type="submit"
+              onClick={() => {
+                if (!formRef.current || !formRef.current.checkValidity()) {
+                  return;
+                }
+
+                setDialogOpen(false);
+              }}
+            >
+              Create Service
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function EditServicePopup({
   service,
   trigger,
   action,
 }: {
-  service: Service;
-  trigger: React.ReactElement<React.ButtonHTMLAttributes<HTMLButtonElement>>;
+  service: z.infer<typeof Service>;
+  trigger: ReactElement<ButtonHTMLAttributes<HTMLButtonElement>>;
   action: (input: FormData) => void;
 }) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
   return (
-    <Dialog>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         {React.cloneElement(trigger, {
           ...trigger.props,
@@ -167,15 +240,24 @@ export function EditSitePopup({
             <span className="font-semibold">{service.name}</span>:
           </DialogDescription>
         </DialogHeader>
-        <form className="contents" action={action}>
-          <SiteLabelsAndInputs service={service} />
+        <form className="contents" action={action} ref={formRef}>
+          <ServiceLabelsAndInputs service={service} />
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <DialogClose asChild type="submit">
-              <Button>Save Changes</Button>
-            </DialogClose>
+            <Button
+              type="submit"
+              onClick={() => {
+                if (!formRef.current || !formRef.current.checkValidity()) {
+                  return;
+                }
+
+                setDialogOpen(false);
+              }}
+            >
+              Save Changes
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -183,12 +265,12 @@ export function EditSitePopup({
   );
 }
 
-export function DeleteSitePopup({
+export function DeleteServicePopup({
   service,
   trigger,
   action,
 }: {
-  service: Service;
+  service: z.infer<typeof Service>;
   trigger: React.ReactElement<React.ButtonHTMLAttributes<HTMLButtonElement>>;
   action: (input: FormData) => void;
 }) {
@@ -220,7 +302,7 @@ export function DeleteSitePopup({
               className="hidden"
               readOnly
               name="id"
-              value={service._id.toString()}
+              value={service.id}
             ></Input>
             <Input
               className="hidden"
@@ -233,7 +315,7 @@ export function DeleteSitePopup({
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               type="submit"
             >
-              Delete Site
+              Delete Service
             </AlertDialogAction>
           </form>
         </AlertDialogFooter>

@@ -1,71 +1,79 @@
 "use server";
 
 import { ServiceCacheKey } from "@/caches";
-import { Service, services } from "@/db";
+import { services } from "@/db";
+import actionClient from "@/lib/safe-action";
+import { Service } from "@/types";
+import { ObjectId } from "mongodb";
 import { revalidateTag } from "next/cache";
+import { z } from "zod";
+import { zfd } from "zod-form-data";
 
-export async function createService(formData: FormData) {
-  const service = {
-    name: formData.get("name") as string,
-    specialities: (formData.get("specialities") as string).split(","),
-    floor: (formData.get("floor") as string).split(","),
-    suite: (formData.get("suite") as string).split(","),
-    phone: formData.get("phone") as string,
-    hours: formData.get("hours") as string,
-    building: formData.get("building") as string,
-  };
+export const createServiceAction = actionClient
+  .schema(
+    zfd.formData(
+      Service.omit({ id: true }).merge(
+        z.strictObject({ building: zfd.text(z.string().optional()) }),
+      ),
+    ),
+  )
+  .action(async ({ parsedInput }) => {
+    await services.insertOne({
+      ...parsedInput,
+      building: parsedInput.building
+        ? ObjectId.createFromHexString(parsedInput.building)
+        : null,
+    });
 
-  await services.insertOne(service);
-  revalidateTag(ServiceCacheKey);
-}
+    revalidateTag(ServiceCacheKey);
+  });
 
-export async function editService(formData: FormData) {
-  const serviceId = formData.get("name") as string;
-  if (!serviceId) {
-    throw new Error("Service Name is required for editing.");
-  }
+export const updateServiceAction = actionClient
+  .schema(
+    zfd.formData(
+      Service.merge(
+        z.strictObject({
+          building: zfd.text(z.string().optional()),
+        }),
+      ),
+    ),
+  )
+  .action(async ({ parsedInput }) => {
+    const newService = await services.findOneAndUpdate(
+      {
+        _id: ObjectId.createFromHexString(parsedInput.id),
+      },
+      [
+        {
+          $set: {
+            ...parsedInput,
+            id: undefined,
+            building: parsedInput.building
+              ? ObjectId.createFromHexString(parsedInput.building)
+              : null,
+          },
+        },
+      ],
+    );
 
-  const existingService = await services.findOne({ name: serviceId });
-  if (!existingService) {
-    throw new Error("Service not found.");
-  }
+    if (newService === null) {
+      throw Error(`Could not find a service with ID: ${parsedInput.id}`);
+    }
 
-  const updatedService: Partial<Service> = {};
+    revalidateTag(ServiceCacheKey);
+  });
 
-  // Only update fields that have a value
-  if (formData.get("name"))
-    updatedService.name = formData.get("name") as string;
-  if (formData.get("specialities")) {
-    updatedService.specialities = (
-      formData.get("specialities") as string
-    ).split(",");
-  }
-  if (formData.get("floor"))
-    updatedService.floor = (formData.get("floor") as string).split(",");
-  if (formData.get("suite"))
-    updatedService.suite = (formData.get("suite") as string).split(",");
-  if (formData.get("phone"))
-    updatedService.phone = formData.get("phone") as string;
-  if (formData.get("hours"))
-    updatedService.hours = formData.get("hours") as string;
-  if (formData.get("building")) {
-    updatedService.building = formData.get("building") as string;
-  }
+export const deleteServiceAction = actionClient
+  .schema(zfd.formData(Service.partial().required({ id: true })))
+  .action(async ({ parsedInput }) => {
+    const newService = await services.findOneAndDelete({
+      _id: ObjectId.createFromHexString(parsedInput.id),
+    });
 
-  await services.updateOne({ name: serviceId }, { $set: updatedService });
+    // Check to make sure we got something back
+    if (newService === null) {
+      throw Error(`Could not find a service with ID: ${parsedInput.id}`);
+    }
 
-  revalidateTag(ServiceCacheKey);
-}
-
-export async function deleteService(formData: FormData) {
-  const serviceId = formData.get("name") as string;
-
-  if (!serviceId) {
-    throw new Error("Service ID is required for deletion.");
-  }
-
-  const query = { name: serviceId };
-
-  await services.deleteOne(query);
-  revalidateTag(ServiceCacheKey);
-}
+    revalidateTag(ServiceCacheKey);
+  });
