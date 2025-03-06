@@ -20,6 +20,7 @@ import {
 import type { Service } from "@/types";
 import { useState } from "react";
 import type { z } from "zod";
+import ParkingNavigation from "./parkingNavigation";
 
 export default function ServiceList({
   initialServices,
@@ -52,35 +53,38 @@ export default function ServiceList({
     <main className="flex-grow container mx-auto px-4 py-8">
       <h2 className="text-3xl font-bold mb-6">Hospital Services Directory</h2>
 
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
-        <div className="flex-grow">
-          <Input
-            type="search"
-            placeholder="Search for a service or specialty"
-            className="w-full"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+      <div className="flex flex-row md:flex-col gap-4 mb-8">
+        <div className="flex flex-col md:flex-row gap-4 flex-grow">
+          <div className="flex-grow">
+            <Input
+              type="search"
+              placeholder="Search for a service or specialty"
+              className="w-full"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <Select value={selectedBuilding} onValueChange={setSelectedBuilding}>
+            <SelectTrigger className="w-full md:w-[200px]">
+              <SelectValue placeholder="Filter by location" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Locations</SelectItem>
+              {[
+                ...new Set(
+                  initialServices
+                    .map((service) => service.building?.name)
+                    .filter((maybeName) => maybeName !== undefined),
+                ).values(),
+              ].map((siteName, index) => (
+                <SelectItem key={index} value={siteName} className="capitalize">
+                  {siteName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={selectedBuilding} onValueChange={setSelectedBuilding}>
-          <SelectTrigger className="w-full md:w-[200px]">
-            <SelectValue placeholder="Filter by location" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Locations</SelectItem>
-            {[
-              ...new Set(
-                initialServices
-                  .map((service) => service.building?.name)
-                  .filter((maybeName) => maybeName !== undefined),
-              ).values(),
-            ].map((siteName, index) => (
-              <SelectItem key={index} value={siteName} className="capitalize">
-                {siteName}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <ParkingNavigation />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 capitalize overflow-auto text-ellipsis">

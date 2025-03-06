@@ -72,7 +72,7 @@ function ErrorDialog({
 function useSuccessToast(show: boolean, input: unknown, pastTense: string) {
   useEffect(() => {
     if (show) {
-      toast(`Site ${pastTense}`, {
+      toast.success(`Site ${pastTense}`, {
         description: (
           <p>
             Successfully {pastTense} Ambulatory Site{" "}

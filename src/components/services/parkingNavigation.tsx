@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -65,22 +66,12 @@ export default function ParkingNavigation() {
   };
 
   return (
-    <div className="mt-8 flex flex-col items-center gap-4">
-      {/* Mark Car Button */}
-      <button
-        onClick={handleMarkCar}
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-      >
-        Mark your car
-      </button>
+    <div className="flex flex-col md:flex-row gap-4">
+      <Button onClick={handleMarkCar}>Mark your Car</Button>
 
-      {/* Guide to Parking Lot Button */}
-      <button
-        onClick={handleGuideToParkingLot}
-        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-      >
-        Guide to parking lot
-      </button>
+      <Button onClick={handleGuideToParkingLot} variant="secondary">
+        Guide to Parking Lot
+      </Button>
     </div>
   );
 }
