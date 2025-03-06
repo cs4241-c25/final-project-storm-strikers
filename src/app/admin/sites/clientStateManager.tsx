@@ -166,7 +166,7 @@ export default function ClientStateManager({
           trigger={
             <Button className="self-end">
               <Plus />
-              Add Ambulatory Site
+              Add Site
             </Button>
           }
           action={addSiteExecute}

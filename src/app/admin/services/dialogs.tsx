@@ -178,7 +178,7 @@ export function AddServiceDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Service</DialogTitle>
+          <DialogTitle>Create Ambulatory Service</DialogTitle>
           <DialogDescription>
             Enter the details of the new service:
           </DialogDescription>
@@ -234,7 +234,7 @@ export function EditServicePopup({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Service</DialogTitle>
+          <DialogTitle>Edit Ambulatory Service</DialogTitle>
           <DialogDescription>
             Enter the new details of{" "}
             <span className="font-semibold">{service.name}</span>:
@@ -288,7 +288,7 @@ export function DeleteServicePopup({
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Service</AlertDialogTitle>
+          <AlertDialogTitle>Delete Ambulatory Service</AlertDialogTitle>
           <AlertDialogDescription>
             Are you sure you want to delete{" "}
             <span className="font-semibold">{service.name}</span>? This action
