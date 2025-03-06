@@ -350,29 +350,45 @@ function SetSiteLocationPopup({
               onClick={async () => {
                 const geocoder = new google.maps.Geocoder();
 
-                // Update final location for each of the
-                // locations we care about
-                for (let i = 0; i < locations.length; i++) {
-                  const longitude = locations[i].longitude,
-                    latitude = locations[i].latitude;
+                // Race promises so that three load together and not sequentially
+                await Promise.all(
+                  locations.map(async (_, index) => {
+                    const longitude = locations[index].longitude,
+                      latitude = locations[index].latitude;
 
-                  if (longitude && latitude) {
-                    const reverseGeocodingResult = await geocoder.geocode({
-                      location: {
-                        lat: latitude,
-                        lng: longitude,
-                      },
-                    });
-                    finalLocations[i].setLocation({
-                      latitude,
-                      longitude,
-                      closestStreetAddress:
-                        reverseGeocodingResult.results[0].formatted_address,
-                    });
-                  } else {
-                    finalLocations[i].setLocation({});
-                  }
-                }
+                    // Do nothing if no change
+                    if (
+                      longitude === finalLocations[index].location.longitude &&
+                      latitude === finalLocations[index].location.latitude
+                    ) {
+                      return;
+                    }
+
+                    if (longitude && latitude) {
+                      finalLocations[index].setLocation({
+                        latitude,
+                        longitude,
+                        closestStreetAddress: "Loading...",
+                      });
+
+                      const reverseGeocodingResult = await geocoder.geocode({
+                        location: {
+                          lat: latitude,
+                          lng: longitude,
+                        },
+                      });
+
+                      finalLocations[index].setLocation({
+                        latitude,
+                        longitude,
+                        closestStreetAddress:
+                          reverseGeocodingResult.results[0].formatted_address,
+                      });
+                    } else {
+                      finalLocations[index].setLocation({});
+                    }
+                  }),
+                );
               }}
             >
               Save Locations
