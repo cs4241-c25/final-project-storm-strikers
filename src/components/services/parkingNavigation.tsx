@@ -55,7 +55,7 @@ export default function ParkingNavigation() {
       const userLat = position.coords.latitude;
       const userLng = position.coords.longitude;
       const directionsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${carLocation.lat},${carLocation.lng}`;
-      window.open(directionsUrl, "_blank"); // Open Google Maps in a new tab
+      window.open(directionsUrl, "_blank"); 
     } catch (error) {
       toast.error("Error getting your current location. Please try again.");
     }
