@@ -61,7 +61,6 @@ export default function ServiceList({
       return;
     }
 
-    // Prevent duplicate script insertion
     if (document.querySelector("script[src*='maps.googleapis.com']")) {
       return;
     }
@@ -79,27 +78,24 @@ export default function ServiceList({
 
   // @ts-ignore
   const GoogleMapWithOverlay = ({ origin, destination, imagePath }) => {
-    const mapRef = useRef<google.maps.Map | null>(null); // Reference to the map instance
+    const mapRef = useRef<google.maps.Map | null>(null);
     const directionsService = useRef<google.maps.DirectionsService | null>(
       null,
-    ); // Directions service instance
+    );
     const directionsRenderer = useRef<google.maps.DirectionsRenderer | null>(
       null,
-    ); // Directions renderer instance
-    const [mapLoaded, setMapLoaded] = useState(false); // Track map loading state
+    );
 
     useEffect(() => {
       if (!mapLoaded) {
         loadGoogleMapsScript(() => {
-          console.log("Google Maps API is now loaded.");
-          setMapLoaded(true); // Set map as loaded after the script is loaded
+          setMapLoaded(true);
         });
       }
     }, [mapLoaded]);
 
     useEffect(() => {
       if (mapLoaded && mapRef.current && !directionsService.current) {
-        // Initialize directions service and renderer when map is loaded
         directionsService.current = new google.maps.DirectionsService();
         directionsRenderer.current = new google.maps.DirectionsRenderer({
           map: mapRef.current,
@@ -116,14 +112,13 @@ export default function ServiceList({
         const request: google.maps.DirectionsRequest = {
           origin: new google.maps.LatLng(origin.lat, origin.lng),
           destination: new google.maps.LatLng(destination.lat, destination.lng),
-          travelMode: google.maps.TravelMode.DRIVING, // Can change to WALKING, BICYCLING, etc.
+          travelMode: google.maps.TravelMode.DRIVING,
         };
 
-        // Request directions from Google Maps API
         directionsService.current.route(request, (result, status) => {
           if (status === google.maps.DirectionsStatus.OK) {
             // @ts-ignore
-            directionsRenderer.current.setDirections(result); // Set the directions on the map
+            directionsRenderer.current.setDirections(result);
           } else {
             console.error("Error fetching directions: " + status);
           }
@@ -131,7 +126,7 @@ export default function ServiceList({
       }
     }, [mapLoaded, origin, destination]);
 
-    if (!mapLoaded) return <div>Loading...</div>; // Prevent map rendering until it's fully loaded
+    if (!mapLoaded) return <div>Loading...</div>;
 
     return (
       <APIProvider apiKey={process.env.NEXT_PUBLIC_MAPS_API_KEY!}>
@@ -142,18 +137,14 @@ export default function ServiceList({
           defaultZoom={15}
           style={{ width: "100%", height: "500px" }}
         >
-          {/* Add marker for origin (parking location) */}
           <AdvancedMarker position={origin} title="Parking Location" />
-
-          {/* Add marker for destination (lobby location) */}
           <AdvancedMarker position={destination} title="Lobby Location" />
-
-          {/* Custom overlay with the image */}
           <div
             style={{
               position: "absolute",
-              left: `${destination.lng}%`,
-              top: `${destination.lat}%`,
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
               width: "100px",
               height: "100px",
             }}
@@ -301,6 +292,41 @@ export default function ServiceList({
                           lng: service.building.lobbyLocation.longitude,
                         }}
                         imagePath="/path/to/your/local/image.png"
+                      />
+                    ) : (
+                      <p>Building information is missing.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Modal for displaying Google Maps */}
+              {showMap && (
+                <div
+                  className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50"
+                  onClick={() => setShowMap(false)} // Close modal on background click
+                >
+                  <div
+                    className="relative bg-white p-4 rounded-lg w-[80vw] max-w-3xl"
+                    onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
+                  >
+                    <Button
+                      className="absolute top-2 right-2"
+                      onClick={() => setShowMap(false)} // Close button
+                    >
+                      Close
+                    </Button>
+                    {service.building ? (
+                      <GoogleMapWithOverlay
+                        origin={{
+                          lat: service.building.parkingLocation.latitude,
+                          lng: service.building.parkingLocation.longitude,
+                        }}
+                        destination={{
+                          lat: service.building.lobbyLocation.latitude,
+                          lng: service.building.lobbyLocation.longitude,
+                        }}
+                        imagePath="/BWHLobbyF1.png"
                       />
                     ) : (
                       <p>Building information is missing.</p>
