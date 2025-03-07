@@ -3,6 +3,12 @@
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "../ui/context-menu";
 
 export default function ParkingNavigation() {
   // State for storing the marked car location
@@ -70,13 +76,27 @@ export default function ParkingNavigation() {
     }
   };
 
-  return (
-    <div className="mt-8 flex flex-col items-center gap-4">
-      {!carLocation ? (
-        <Button onClick={handleMarkCar}>Mark Your Car</Button>
-      ) : (
-        <Button onClick={handleGuideToParkingLot}>Guide to Parking Lot</Button>
-      )}
-    </div>
+  return !carLocation ? (
+    <Button onClick={handleMarkCar}>Mark My Car</Button>
+  ) : (
+    <ContextMenu>
+      <ContextMenuTrigger>
+        <Button onClick={handleGuideToParkingLot}>Find My Car</Button>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem onClick={handleMarkCar}>
+          Re-Mark My Car
+        </ContextMenuItem>
+        <ContextMenuItem
+          onClick={() => {
+            setCarLocation(null);
+            localStorage.removeItem("carLocation");
+            toast.success("Car location cleared!");
+          }}
+        >
+          Clear Car Location
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 }
