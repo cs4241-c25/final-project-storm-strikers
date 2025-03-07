@@ -39,6 +39,8 @@ function NavigationMap({
 }) {
   const map = useMap();
   const routesLibrary = useMapsLibrary("routes");
+  const maps = useMapsLibrary("core");
+  const [zoom, setZoom] = useState(map?.getZoom() || 15); // Default to 15 if undefined
   const directionsService = useMemo(
     () => (routesLibrary ? new routesLibrary.DirectionsService() : null),
     [routesLibrary],
@@ -75,7 +77,7 @@ function NavigationMap({
   );
 
   useEffect(() => {
-    if (!routesLibrary) {
+    if (!routesLibrary || !map) {
       return;
     }
 
@@ -88,6 +90,12 @@ function NavigationMap({
       travelMode: routesLibrary.TravelMode.WALKING,
     };
 
+    const zoomListener = map.addListener("zoom_changed", () => {
+      const newZoom = map.getZoom() ?? 15; // Default to 15 if undefined
+      console.log("Current Zoom Level:", newZoom); // Log zoom level
+      setZoom(newZoom);
+    });
+
     directionsService?.route(request, (result, directionStatus) => {
       if (directionStatus === google.maps.DirectionsStatus.OK) {
         directionsRenderer?.setDirections(result);
@@ -95,6 +103,7 @@ function NavigationMap({
         console.error("Error fetching directions: " + directionStatus);
       }
     });
+    return () => google.maps.event.removeListener(zoomListener);
   }, [
     directionsService,
     directionsRenderer,
@@ -103,6 +112,17 @@ function NavigationMap({
     site.lobbyLocation.latitude,
     site.lobbyLocation.longitude,
   ]);
+
+  // Dynamically adjust size based on zoom level
+  const iconSize = useMemo(() => {
+    if (!maps) return undefined;
+
+    const baseSize = 7; // Base size at zoom level 15
+    const scaleFactor = Math.pow(2, zoom - 15); // Exponential scaling
+    return new maps.Size(baseSize * scaleFactor, baseSize * scaleFactor);
+  }, [maps, zoom]);
+
+
 
   return (
     <GMap
@@ -135,12 +155,27 @@ function NavigationMap({
         label="P"
       />
       <Marker
-        position={{
-          lat: site.lobbyLocation.latitude,
-          lng: site.lobbyLocation.longitude,
-        }}
-        title="Lobby"
-        label="L"
+          position={{
+            lat: site.lobbyLocation.latitude,
+            lng: site.lobbyLocation.longitude,
+          }}
+          title="Lobby"
+          label="L"
+          icon={
+            maps
+                ? {
+                  url:
+                      site.lobbyLocation.closestStreetAddress === "404 Hanover St, Boston, MA 02113, USA"
+                          ? "/BWH-F1R.png"
+                          : site.lobbyLocation.closestStreetAddress === "53-59 N Margin St, Boston, MA 02113, USA"
+                              ? "/BWH-Faulkner-F1.png"
+                              : site.lobbyLocation.closestStreetAddress === "106-110 Salem St, Boston, MA 02113, USA"
+                                  ? "/BWH-Francis-F1.png"
+                                  : "/default-hospital.png", // Fallback image
+                  scaledSize: iconSize,
+                }
+                : undefined
+          }
       />
       <Marker
         position={{
