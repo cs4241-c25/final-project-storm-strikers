@@ -23,6 +23,7 @@ export const getAllSitesCached = unstable_cache(
   [],
   {
     tags: [SiteCacheKey],
+    revalidate: 60,
   },
 );
 
@@ -64,5 +65,6 @@ export const getAllServicesCached = unstable_cache(
   [],
   {
     tags: [ServiceCacheKey, SiteCacheKey], // Update site on service change
+    revalidate: 60,
   },
 );

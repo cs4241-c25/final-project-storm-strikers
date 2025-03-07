@@ -57,11 +57,6 @@ export default function RootLayout({
 
             <nav>
               <ul className="flex space-x-4 items-center ">
-                {/* <li className="hidden md:block text-md">
-                  <Link href="/" className="hover:underline flex items-center">
-                    Home
-                  </Link>
-                </li> */}
                 <li>
                   <AuthButton />
                 </li>
