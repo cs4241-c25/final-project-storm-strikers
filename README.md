@@ -96,7 +96,10 @@ Dee
   -
 
 Alek:
-  -
+  - Sevice edit functionlity
+  - Service delete functioity
+  - Primary lobby navigation.
+  - Dialog styling
 
 Brian
   -
