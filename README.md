@@ -1,32 +1,9 @@
-# Final Project
-*Due at noon on the day of your team's assigned class presentation. Teams will be presenting
-during the last week of class on Tuesday, Thursday, and Friday (March 4, 6, 7)*
-
-For your final project, you'll implement a web application that exhibits understanding of the course materials.
-This project should provide an opportunity to both be creative and to pursue individual research and learning goals.
-
-## Final Project Description
-- Your project should consist of a complete Web application, exhibiting facets of the three main sections of the course material:
-- Static web page content and design. You should have a project with a well-designed user interface that is responsive, accessible, easily navigable, and features significant content.
-- Dynamic behavior implemented with JavaScript or Typescript.
-- Server-side programming using Node.js – either JavaScript or Typescript. Typically, this will take the form of some sort of persistent data (database), authentication, and possibly server-side computation.
-- A video (less than five minutes) where each group member explains some aspect of the project. An easy way to produce this video is for you all the group members to join a Zoom call that is recorded; each member can share their screen when they discuss the project or one member can "drive" the interface while other members narrate (this second option will probably work better.) The video should be posted on YouTube or some other accessible video hosting service. Make sure your video is less than five minutes, but long enough to successfully explain your project and show it in action. There is no minimum video length.
-
-## Project ideation
-I encourage you to identify projects that will have impact, either artistically or in terms of productivity. A few possibilities are
-1.	AI/ML app. You may take an AI/ML that you have written in the past and create a full application out of it provided it satisfies all the project requirements. I will review the proposals to make sure the scope is significant enough for a final project.
-2.	Mass General Brigham – The hospital is interested in providing visitors with directions to parking lots, building entrances, and information desks for multiple buildings. Integrated with the Google Maps API, these directions would guide visitors from their homes to the information desks of hospital buildings, and would guide visitors to locations between hospital buildings. Contact me if you would like more information.
-3.	Boston Freedom Trail app for tourists.
-4.	A generalized sightseeing app that permits tourist organizations to enter information in creating their own city walking tours.
-5.	An application aimed at serving the WPI student body. For example, an app that would facilitate the formation and coordination of informal WPI student groups.
-6.	An idea of your own!
-
 
 ### Deliverables
 Our web application was designed for visitors and users at Brigham & Womens. As a user you have the ability to see all services associated with the hospital as well 
 as find directios to certain common areas within the hospital. This includes the lobby, parking, and drop-off zones. As a signed in user, you have the ability to create
 and edit services and sites. With this functionality, hospital staff are able to reorganize services and edit them easily. Users have the ability to 'mark your car' 
-which is helpful to be able to navigate to and from the lobby to a users vehicle. Weh creating a new site, there is a pop-up map where a user can place pins for the 
+which is helpful to be able to navigate to and from the lobby to a users vehicle. We creating a new site, there is a pop-up map where a user can place pins for the 
 lobby, drop-off, and parking. This allows signed-in users to easliy edit/add sites.
 
 The link for our deployed web application is:
@@ -110,7 +87,10 @@ Ian:
   -
 
 Emerson:
-  -
+  - Auth
+  - Home page
+  - Services table
+  - Handled location based actions like button showing for drop off
 
 Dee
   -
