@@ -16,6 +16,14 @@ export const AmbulatorySite = z.strictObject({
   parkingLocation: mapLocation,
   dropOffLocation: mapLocation,
   lobbyLocation: mapLocation,
+  overlay: z
+    .strictObject({
+      image: zfd.text(),
+      topLeft: mapLocation.omit({ closestStreetAddress: true }),
+      bottomRight: mapLocation.omit({ closestStreetAddress: true }),
+    })
+    .optional()
+    .catch(() => undefined), // zod-form-data sucks and doesn't work well with nested data
 });
 
 export type DbService = Omit<z.infer<typeof Service>, "id" | "building"> & {

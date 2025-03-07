@@ -1,11 +1,12 @@
 "use server";
 
-import { SiteCacheKey } from "@/caches";
+import { getOverlayCached, SiteCacheKey } from "@/caches";
 import { ambulatorySites } from "@/db";
 import actionClient from "@/lib/safe-action";
 import { AmbulatorySite } from "@/types";
 import { ObjectId } from "mongodb";
 import { revalidateTag } from "next/cache";
+import { z } from "zod";
 import { zfd } from "zod-form-data";
 
 export const addSiteAction = actionClient
@@ -54,4 +55,10 @@ export const deleteSiteAction = actionClient
     }
 
     revalidateTag(SiteCacheKey);
+  });
+
+export const getOverlayAction = actionClient
+  .schema(z.strictObject({ id: z.string() }))
+  .action(async ({ parsedInput: { id } }) => {
+    return getOverlayCached(id);
   });

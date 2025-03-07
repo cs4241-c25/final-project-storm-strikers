@@ -52,21 +52,143 @@ import {
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
 import { CommandLoading } from "cmdk";
-import { ChevronsUpDown, LocateFixed } from "lucide-react";
+import {
+  ChevronsUpDown,
+  Loader2,
+  LocateFixed,
+  RotateCcw,
+  RotateCw,
+  Trash,
+} from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import React, {
   ButtonHTMLAttributes,
   Fragment,
   ReactElement,
+  useEffect,
   useId,
   useMemo,
   useRef,
   useState,
 } from "react";
 import type { z } from "zod";
+import { getOverlayAction } from "./actions";
 
 type PartialSiteLocation = Partial<
   z.infer<typeof AmbulatorySite>["parkingLocation"]
 >;
+
+type PartialOverlay = Partial<{
+  topLeft: Omit<PartialSiteLocation, "closestStreetAddress">;
+  bottomRight: Omit<PartialSiteLocation, "closestStreetAddress">;
+  image: string;
+}>;
+
+type PartialOverlayRequiredBase64 = Omit<PartialOverlay, "image"> & {
+  image: string;
+};
+
+const DefaultLatitude = 42.36529; // this is boston
+const LatitudeLobbySizeOffset = 0.00025;
+const DefaultLongitude = -71.0555; // this is boston
+const LongitudeLobbySizeOffset = 0.00025;
+
+function DraggableOverlayRectangle({
+  overlay,
+  setOverlay,
+  lobbyLocation,
+}: {
+  overlay: PartialOverlayRequiredBase64;
+  setOverlay: (newOverlay: PartialOverlayRequiredBase64) => void;
+  lobbyLocation: PartialSiteLocation;
+}) {
+  const map = useMap();
+  const rectangle = useMemo(
+    () =>
+      new google.maps.Rectangle({
+        map: map,
+        draggable: true,
+        editable: true,
+      }),
+    [map],
+  );
+
+  useEffect(() => {
+    const listener = rectangle.addListener("bounds_changed", () => {
+      const rectBounds = rectangle.getBounds(),
+        topLeft = rectBounds?.getNorthEast(),
+        bottomRight = rectBounds?.getSouthWest();
+
+      // Prevent infinite recursion, if we just updated bounds, don't notify
+      if (
+        overlay.topLeft?.latitude === topLeft?.lat() &&
+        overlay.topLeft?.longitude === topLeft?.lng() &&
+        overlay.bottomRight?.longitude === bottomRight?.lng() &&
+        overlay.bottomRight?.latitude === bottomRight?.lat()
+      ) {
+        return;
+      }
+
+      // This can occur during render, so we need to make sure we update state not during that time...
+      setTimeout(() =>
+        setOverlay({
+          ...overlay,
+          topLeft: { latitude: topLeft?.lat(), longitude: topLeft?.lng() },
+          bottomRight: {
+            latitude: bottomRight?.lat(),
+            longitude: bottomRight?.lng(),
+          },
+        }),
+      );
+    });
+
+    return () => google.maps.event.removeListener(listener);
+  }, [overlay, rectangle, setOverlay]);
+
+  const bounds = useMemo(
+    () => ({
+      north:
+        overlay.topLeft?.latitude ??
+        (lobbyLocation.latitude ?? DefaultLatitude) + LatitudeLobbySizeOffset,
+      east:
+        overlay.topLeft?.longitude ??
+        (lobbyLocation.longitude ?? DefaultLongitude) +
+          LongitudeLobbySizeOffset,
+      west:
+        overlay.bottomRight?.longitude ??
+        (lobbyLocation.longitude ?? DefaultLongitude) -
+          LongitudeLobbySizeOffset,
+      south:
+        overlay.bottomRight?.latitude ??
+        (lobbyLocation.latitude ?? DefaultLatitude) - LatitudeLobbySizeOffset,
+    }),
+    [
+      lobbyLocation.latitude,
+      lobbyLocation.longitude,
+      overlay.bottomRight?.latitude,
+      overlay.bottomRight?.longitude,
+      overlay.topLeft?.latitude,
+      overlay.topLeft?.longitude,
+    ],
+  );
+
+  useMemo(() => rectangle.setBounds(bounds), [bounds, rectangle]);
+
+  useEffect(() => {
+    const createdGroundOverlay = new google.maps.GroundOverlay(
+      overlay.image,
+      bounds,
+      {
+        map,
+        opacity: 0.65,
+      },
+    );
+
+    return () => createdGroundOverlay.setMap(null); // clear old overlay
+  }, [bounds, map, overlay.image]);
+
+  return <></>;
+}
 
 function SiteComboBox({
   mapId,
@@ -194,6 +316,171 @@ function SiteComboBox({
   );
 }
 
+function rotateImage(base64Image: string, clockwise: boolean) {
+  return new Promise<string>((resolve) => {
+    const image = new Image();
+    image.src = base64Image;
+    image.onload = () => {
+      // Create a canvas with the given dimensions, to draw the rotated image into
+      const canvas = document.createElement("canvas");
+      canvas.width = image.width;
+      canvas.height = image.height;
+
+      const canvasContext2d = canvas.getContext("2d");
+
+      // apply the rotation
+      if (clockwise) {
+        // We must update the dimensions or the image will distort
+        canvas.width = image.height;
+        canvas.height = image.width;
+        canvasContext2d?.translate(canvas.width, 0);
+        canvasContext2d?.rotate((90 * Math.PI) / 180);
+      } else {
+        // We must update the dimensions or the image will distort
+        canvas.width = image.height;
+        canvas.height = image.width;
+        canvasContext2d?.translate(0, canvas.height);
+        canvasContext2d?.rotate((-90 * Math.PI) / 180);
+      }
+
+      // draw the image
+      canvasContext2d?.drawImage(image, 0, 0);
+
+      // output as base64 again
+      return resolve(canvas.toDataURL("image/png", 100));
+    };
+  });
+}
+
+function SetServiceOverlayPopup({
+  locations: finalLocations,
+  trigger,
+  overlayLocation: finalOverlay,
+  setOverlay: setFinalOverlay,
+}: {
+  locations: {
+    name: string;
+    location: PartialSiteLocation;
+  }[];
+  overlayLocation: PartialOverlayRequiredBase64;
+  setOverlay: (newOverlay: PartialOverlay) => void;
+  trigger: ReactElement<ButtonHTMLAttributes<HTMLButtonElement>>;
+}) {
+  const mapId = useId();
+  const [overlayLocation, setOverlay] = useState(finalOverlay);
+  useMemo(() => setOverlay({ ...finalOverlay }), [finalOverlay]);
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Set Overlay Location </DialogTitle>
+          <DialogDescription>
+            Drag, resize, or rotate the overlay image to make it match the lobby
+            of the site.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="h-96 rounded-sm overflow-clip border relative">
+          <APIProvider apiKey={process.env.NEXT_PUBLIC_MAPS_API_KEY ?? ""}>
+            <SiteComboBox
+              mapId={mapId}
+              className="absolute right-2 top-2 z-50"
+              width={175}
+            />
+            <GMap
+              id={mapId}
+              defaultZoom={15}
+              styles={[
+                {
+                  featureType: "poi",
+                  elementType: "labels",
+                  stylers: [{ visibility: "off" }],
+                },
+                {
+                  featureType: "transit",
+                  elementType: "labels",
+                  stylers: [{ visibility: "off" }],
+                },
+              ]}
+              defaultCenter={{
+                lat: finalLocations[0]?.location.latitude ?? DefaultLatitude,
+                lng: finalLocations[0]?.location.longitude ?? DefaultLongitude,
+              }}
+              gestureHandling={"greedy"}
+              disableDefaultUI={true}
+            >
+              {finalLocations.map((mapLocation, index) => (
+                <Marker
+                  key={index}
+                  label={mapLocation.name[0]}
+                  position={
+                    mapLocation.location.latitude &&
+                    mapLocation.location.longitude
+                      ? {
+                          lat: mapLocation.location.latitude,
+                          lng: mapLocation.location.longitude,
+                        }
+                      : {
+                          lat: DefaultLatitude,
+                          lng: DefaultLongitude,
+                        }
+                  }
+                />
+              ))}
+              <div className="flex flex-row gap-1 absolute left-2 top-2">
+                <Button
+                  variant="secondary"
+                  onClick={async () => {
+                    setOverlay({
+                      ...overlayLocation,
+                      image: await rotateImage(overlayLocation.image, false),
+                    });
+                  }}
+                >
+                  <RotateCcw />
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={async () => {
+                    setOverlay({
+                      ...overlayLocation,
+                      image: await rotateImage(overlayLocation.image, true),
+                    });
+                  }}
+                >
+                  <RotateCw />
+                </Button>
+              </div>
+              <DraggableOverlayRectangle
+                overlay={overlayLocation}
+                lobbyLocation={finalLocations[0].location}
+                setOverlay={(newOverlay) =>
+                  setOverlay({ ...overlayLocation, ...newOverlay })
+                }
+              />
+            </GMap>
+          </APIProvider>
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="secondary">Cancel</Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button
+              onClick={() => {
+                setFinalOverlay(overlayLocation);
+              }}
+            >
+              Save Overlay
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function SetSiteLocationPopup({
   locations: finalLocations,
   trigger,
@@ -205,8 +492,6 @@ function SetSiteLocationPopup({
   }[];
   trigger: ReactElement<ButtonHTMLAttributes<HTMLButtonElement>>;
 }) {
-  const DefaultLatitude = 42.36529; // this is boston
-  const DefaultLongitude = -71.0555; // this is boston
   const mapId = useId();
 
   const [locations, setLocations] = useState<
@@ -411,6 +696,7 @@ function SiteLabelsAndInputs({
   const lobbyLocationElementId = useId();
   const parkingLocationTextElementId = useId();
   const dropOffLocationElementId = useId();
+  const lobbyOverlayElementId = useId();
 
   const [parkingLocation, setParkingLocation] = useState<PartialSiteLocation>(
     site?.parkingLocation ?? {},
@@ -421,6 +707,34 @@ function SiteLabelsAndInputs({
   const [lobbyLocation, setLobbyLocation] = useState<PartialSiteLocation>(
     site?.lobbyLocation ?? {},
   );
+
+  const [lobbyOverlay, setLobbyOverlay] = useState<PartialOverlay>(
+    site?.overlay ?? {},
+  );
+
+  // Show that the overlay data is loading
+  const [overlayLoading, setOverlayLoading] = useState(site?.id ? true : false);
+
+  const { execute: loadOverlay, result: databaseOverlay } =
+    useAction(getOverlayAction);
+  // Load the overlay on component mount
+  useEffect(() => {
+    if (!site?.id) {
+      return;
+    }
+    loadOverlay({ id: site?.id });
+  }, [loadOverlay, site?.id]);
+
+  const setOverlayInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (!databaseOverlay || databaseOverlay.data === undefined) {
+      return;
+    }
+
+    setOverlayLoading(false);
+    setLobbyOverlay(databaseOverlay.data ?? {}); // Could be null here
+  }, [databaseOverlay]);
 
   const mapLocations = useMemo(
     () => [
@@ -438,6 +752,22 @@ function SiteLabelsAndInputs({
     ],
     [dropOffLocation, lobbyLocation, parkingLocation],
   );
+
+  // Ensure the location is present when an overlay image is
+  useEffect(() => {
+    if (!setOverlayInputRef.current) {
+      return;
+    }
+
+    if (
+      lobbyOverlay.image &&
+      (!lobbyOverlay.topLeft || !lobbyOverlay.bottomRight)
+    ) {
+      setOverlayInputRef.current.setCustomValidity("Set the overlay location");
+    } else {
+      setOverlayInputRef.current.setCustomValidity("");
+    }
+  }, [lobbyOverlay.image, lobbyOverlay.bottomRight, lobbyOverlay.topLeft]);
 
   return (
     <div className="grid grid-cols-[min-content_auto] gap-x-5 gap-y-2">
@@ -566,7 +896,101 @@ function SiteLabelsAndInputs({
           </span>
         }
       />
+      <Label
+        className="col-start-1 self-center text-right"
+        htmlFor={lobbyOverlayElementId}
+      >
+        Lobby Image:
+      </Label>
+      <div className="col-start-2 flex flex-row gap-2">
+        <Input
+          type="file"
+          id={lobbyOverlayElementId}
+          ref={setOverlayInputRef}
+          disabled={overlayLoading}
+          onChange={async (fileChangeEvent) => {
+            const file = fileChangeEvent.target.files?.[0];
+            if (!file) {
+              setLobbyOverlay({ ...lobbyOverlay, image: undefined });
+              return;
+            }
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            await new Promise<ProgressEvent<FileReader>>((resolve, reject) => {
+              reader.onloadend = resolve;
+              reader.onerror = reject;
+            });
+            if (typeof reader.result !== "string") {
+              setLobbyOverlay({ ...lobbyOverlay, image: undefined });
+              return;
+            }
+            setLobbyOverlay({ ...lobbyOverlay, image: reader.result });
+          }}
+        />
+        {typeof lobbyOverlay.image === "string" ? (
+          <SetServiceOverlayPopup
+            trigger={<Button>Set Location</Button>}
+            locations={mapLocations}
+            overlayLocation={lobbyOverlay as PartialOverlayRequiredBase64}
+            setOverlay={setLobbyOverlay}
+          />
+        ) : (
+          <Button disabled>
+            {overlayLoading && <Loader2 className="animate-spin" />} Set
+            Location
+          </Button>
+        )}
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={
+            overlayLoading ||
+            (!lobbyOverlay.image &&
+              !lobbyOverlay.topLeft &&
+              !lobbyOverlay.bottomRight)
+          }
+          onClick={() => {
+            setLobbyOverlay({});
+            if (!setOverlayInputRef.current) {
+              return;
+            }
+            setOverlayInputRef.current.value = "";
+          }}
+        >
+          <Trash />
+        </Button>
+      </div>
 
+      <Input
+        className="hidden"
+        value={lobbyOverlay.image ?? ""}
+        readOnly
+        name="overlay.image"
+      />
+      <Input
+        className="hidden"
+        value={lobbyOverlay.topLeft?.latitude ?? ""}
+        readOnly
+        name="overlay.topLeft.latitude"
+      />
+      <Input
+        className="hidden"
+        value={lobbyOverlay.topLeft?.longitude ?? ""}
+        readOnly
+        name="overlay.topLeft.longitude"
+      />
+      <Input
+        className="hidden"
+        value={lobbyOverlay.bottomRight?.latitude ?? ""}
+        readOnly
+        name="overlay.bottomRight.latitude"
+      />
+      <Input
+        className="hidden"
+        value={lobbyOverlay.bottomRight?.longitude ?? ""}
+        readOnly
+        name="overlay.bottomRight.longitude"
+      />
       <Input
         className="hidden"
         value={parkingLocation.longitude ?? ""}
