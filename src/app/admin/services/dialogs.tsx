@@ -94,7 +94,6 @@ function ServiceLabelsAndInputs({
         defaultValue={service?.specialties}
         required
         minLength={1}
-        placeholder="Click to view specialties"
         name="specialties"
         id={specialtiesElementId}
       />
@@ -107,7 +106,6 @@ function ServiceLabelsAndInputs({
       <MultiInput
         className="relative col-start-2"
         defaultValue={service?.floor}
-        placeholder="Click to view floors"
         minLength={1}
         type="number"
         name="floor"
@@ -122,7 +120,6 @@ function ServiceLabelsAndInputs({
       <MultiInput
         className="col-start-2"
         defaultValue={service?.suite}
-        placeholder="Click to view suites"
         minLength={1}
         name="suite"
         id={suiteElementId}

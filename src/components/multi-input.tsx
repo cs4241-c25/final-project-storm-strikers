@@ -51,6 +51,7 @@ export default function MultiInput(
 
       // Add the value, this will re-trigger validation
       setValues([...values, inputText]);
+      setInputText("");
       setPopoverOpen(true); // This happens on tab->enter
     }
   }, [inputText, props.maxLength, values, inputRef]);
@@ -83,6 +84,9 @@ export default function MultiInput(
             <Input
               {...props}
               name={undefined}
+              placeholder={
+                values.length > 0 ? values.join(",") : (props.placeholder ?? "")
+              }
               defaultValue={undefined}
               value={inputText}
               ref={inputRef}
