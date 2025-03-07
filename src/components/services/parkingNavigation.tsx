@@ -20,15 +20,13 @@ export default function ParkingNavigation() {
   }, []);
 
   // Retrieves user's current location (Promise-based)
-  const getCurrentLocation = (): Promise<GeolocationPosition> => {
-    return new Promise((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject);
-    });
-  };
+  const getCurrentLocation = (): Promise<GeolocationPosition> =>
+    new Promise((resolve, reject) =>
+      navigator.geolocation.getCurrentPosition(resolve, reject),
+    );
 
   // Marks the current location as the car location
-  const handleMarkCar = async (event: React.MouseEvent) => {
-    event.preventDefault();
+  const handleMarkCar = async () => {
     try {
       const position = await getCurrentLocation();
       const newLocation = {
@@ -38,7 +36,7 @@ export default function ParkingNavigation() {
       setCarLocation(newLocation);
       localStorage.setItem("carLocation", JSON.stringify(newLocation));
       toast.success("Car location marked!");
-    } catch (error) {
+    } catch (_) {
       toast.error("Unable to retrieve your location.");
     }
   };
@@ -67,7 +65,7 @@ export default function ParkingNavigation() {
 
       const directionsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${carLocation.lat},${carLocation.lng}`;
       window.open(directionsUrl, "_blank");
-    } catch (error) {
+    } catch (_) {
       toast.error("Error getting your current location. Please try again.");
     }
   };
