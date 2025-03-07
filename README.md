@@ -93,7 +93,8 @@ Emerson:
   - Handled location based actions like button showing for drop off
 
 Dee
-  -
+  - Find Parking/Drop Off button
+  - Mark car's location & Guide to the marked car
 
 Alek:
   - Sevice edit functionlity
