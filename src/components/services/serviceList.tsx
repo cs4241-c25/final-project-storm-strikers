@@ -166,7 +166,7 @@ export default function ServiceList({
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 capitalize overflow-auto text-ellipsis">
         {filteredServices.map((service) => (
-          <Card key={service.id.toString()}>
+          <Card key={service.id.toString()} className="flex flex-col">
             <CardHeader>
               <CardTitle className="overflow-auto text-ellipsis">
                 {service.name}
@@ -175,10 +175,10 @@ export default function ServiceList({
                 {service.specialties.join(", ")}
               </CardDescription>
             </CardHeader>
-            <CardContent className="overflow-auto text-ellipsis">
+            <CardContent className="flex-grow overflow-auto text-ellipsis">
               {(service.suite || service.floor) && (
                 <p>
-                  <strong>Location:</strong>{" "}
+                  <strong>Location:</strong> {service.building.name} -{" "}
                   {service.floor ? `Floor ${service.floor.join(", ")}` : ""}
                   {service.floor && service.suite ? ", " : ""}
                   {service.suite ? `Suite ${service.suite.join(", ")}` : ""}
@@ -191,7 +191,7 @@ export default function ServiceList({
                 <strong>Phone:</strong> {service.phone}
               </p>
             </CardContent>
-            <CardFooter className="flex flex-col lg:flex-row gap-2 justify-between">
+            <CardFooter className="flex flex-col lg:flex-row gap-2 justify-between mt-auto">
               {checkProximity(service.building.lobbyLocation) === "near" ? (
                 <MapDialog
                   site={service.building}
