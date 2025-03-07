@@ -88,15 +88,15 @@ const columns: ColumnDef<z.infer<typeof Service>>[] = [
   { accessorKey: "id", header: "ID", size: 1 },
   { accessorKey: "name", header: "Name" },
   {
-    accessorFn: (row) => row.specialties.join(","),
+    accessorFn: (row) => row.specialties.join(", "),
     header: "Specialties",
   },
   {
-    accessorFn: (row) => row.floor?.join(",") ?? "",
+    accessorFn: (row) => row.floor?.join(", ") ?? "",
     header: "Floor",
   },
   {
-    accessorFn: (row) => row.suite?.join(",") ?? "",
+    accessorFn: (row) => row.suite?.join(", ") ?? "",
     header: "Suite",
   },
   {

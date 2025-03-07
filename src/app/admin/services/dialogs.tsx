@@ -1,5 +1,6 @@
 "use client";
 
+import MultiInput from "@/components/multi-input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -88,10 +89,12 @@ function ServiceLabelsAndInputs({
       >
         Specialties:
       </Label>
-      <Input
+      <MultiInput
         className="col-start-2"
         defaultValue={service?.specialties}
         required
+        minLength={1}
+        placeholder="Click to view specialties"
         name="specialties"
         id={specialtiesElementId}
       />
@@ -101,11 +104,12 @@ function ServiceLabelsAndInputs({
       >
         Floor:
       </Label>
-      <Input
+      <MultiInput
         className="relative col-start-2"
         defaultValue={service?.floor}
+        placeholder="Click to view floors"
+        minLength={1}
         type="number"
-        step={0.01}
         name="floor"
         id={floorElementId}
       />
@@ -115,9 +119,11 @@ function ServiceLabelsAndInputs({
       >
         Suite:
       </Label>
-      <Input
+      <MultiInput
         className="col-start-2"
         defaultValue={service?.suite}
+        placeholder="Click to view suites"
+        minLength={1}
         name="suite"
         id={suiteElementId}
       />
