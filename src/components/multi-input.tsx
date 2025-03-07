@@ -20,7 +20,7 @@ type InputType = InputHTMLAttributes<HTMLInputElement>["value"];
 export default function MultiInput(
   props: Omit<
     InputHTMLAttributes<HTMLInputElement>,
-    "value" | "onChange" | "defaultValue"
+    "value" | "onChange" | "defaultValue" | "ref"
   > & {
     minCount?: number;
     maxCount?: number;
@@ -88,14 +88,16 @@ export default function MultiInput(
               ref={inputRef}
               required={false}
               onChange={(changeEvent) => setInputText(changeEvent.target.value)}
-              onBlur={
-                updateValidity /*Ensure we don't have a lingering enter a value*/
-              }
+              onBlur={(blurEvent) => {
+                updateValidity(); /*Ensure we don't have a lingering enter a value*/
+                props.onBlur?.(blurEvent);
+              }}
               onKeyDown={(keyDownEvent) => {
                 if (keyDownEvent.key === "Enter") {
                   addValue();
                   keyDownEvent.preventDefault();
                 }
+                props.onKeyDown?.(keyDownEvent);
               }}
               className={`${props.className} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
             />
