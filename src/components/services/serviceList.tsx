@@ -39,14 +39,21 @@ export default function ServiceList({
     window.open(url, "_blank");
   };
 
-  const filteredServices = initialServices.filter(
-    (service) =>
-      (service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        service.specialties.some((spec) =>
-          spec.toLowerCase().includes(searchQuery.toLowerCase()),
-        )) &&
-      service.building,
-  );
+  const filteredServices = initialServices
+    .filter(
+      (service) =>
+        (service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          service.specialties.some((spec) =>
+            spec.toLowerCase().includes(searchQuery.toLowerCase()),
+          )) &&
+        service.building &&
+        (selectedBuilding === "all" ||
+          service.building.name === selectedBuilding),
+    )
+    .sort((a, b) => {
+      if (!a.building || !b.building) return 0;
+      return a.building.name.localeCompare(b.building.name);
+    });
 
   return (
     <main className="flex-grow container mx-auto px-4 py-8">
