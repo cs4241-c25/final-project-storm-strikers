@@ -24,7 +24,7 @@ export type DbService = Omit<z.infer<typeof Service>, "id" | "building"> & {
 export const Service = z.strictObject({
   id: zfd.text(),
   name: zfd.text(),
-  specialties: zfd.repeatable(z.array(zfd.text())),
+  specialties: zfd.repeatable(z.array(zfd.text()).min(1)),
   floor: zfd.repeatable(z.array(zfd.text()).min(1)).optional(),
   suite: zfd.repeatable(z.array(zfd.text()).min(1)).optional(),
   phone: zfd.text(z.string()),
