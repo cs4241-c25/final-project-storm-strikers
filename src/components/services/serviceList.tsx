@@ -17,23 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Service } from "@/types";
-import {
-  AdvancedMarker,
-  APIProvider,
-  Map as GMap,
-} from "@vis.gl/react-google-maps";
-import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import type { AmbulatorySite, Service } from "@/types";
+import { useState } from "react";
 import type { z } from "zod";
-import ParkingNavigation from "./parkingNavigation";
-
-// Extend the window object to include initGoogleMaps
-declare global {
-  interface Window {
-    initGoogleMaps: () => void;
-  }
-}
+import MapDialog from "./mapDialog";
+import LobbyNavigation from "./parkingNavigation";
 
 export default function ServiceList({
   initialServices,
@@ -42,8 +30,6 @@ export default function ServiceList({
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBuilding, setSelectedBuilding] = useState("all");
-  const [showMap, setShowMap] = useState(false); // Controls modal visibility
-  const [mapLoaded, setMapLoaded] = useState(false);
 
   // Helper function to open Google Maps with directions to a destination
   const openGoogleMaps = (mapLocation: {
@@ -54,126 +40,22 @@ export default function ServiceList({
     window.open(url, "_blank");
   };
 
-  // Function to load Google Maps script only once
-  const loadGoogleMapsScript = (callback: () => void) => {
-    if (window.google && window.google.maps) {
-      callback();
-      return;
-    }
-
-    if (document.querySelector("script[src*='maps.googleapis.com']")) {
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_MAPS_API_KEY}&libraries=geometry,places,marker&callback=initGoogleMaps&map_ids=${process.env.NEXT_PUBLIC_MAP_ID}`;
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
-
-    (window as any).initGoogleMaps = () => {
-      callback();
-    };
-  };
-
-  // @ts-ignore
-  const GoogleMapWithOverlay = ({ origin, destination, imagePath }) => {
-    const mapRef = useRef<google.maps.Map | null>(null);
-    const directionsService = useRef<google.maps.DirectionsService | null>(
-      null,
-    );
-    const directionsRenderer = useRef<google.maps.DirectionsRenderer | null>(
-      null,
-    );
-
-    useEffect(() => {
-      if (!mapLoaded) {
-        loadGoogleMapsScript(() => {
-          setMapLoaded(true);
-        });
-      }
-    }, [mapLoaded]);
-
-    useEffect(() => {
-      if (mapLoaded && mapRef.current && !directionsService.current) {
-        directionsService.current = new google.maps.DirectionsService();
-        directionsRenderer.current = new google.maps.DirectionsRenderer({
-          map: mapRef.current,
-          suppressMarkers: true,
-        });
-      }
-
-      if (
-        directionsService.current &&
-        directionsRenderer.current &&
-        origin &&
-        destination
-      ) {
-        const request: google.maps.DirectionsRequest = {
-          origin: new google.maps.LatLng(origin.lat, origin.lng),
-          destination: new google.maps.LatLng(destination.lat, destination.lng),
-          travelMode: google.maps.TravelMode.DRIVING,
-        };
-
-        directionsService.current.route(request, (result, status) => {
-          if (status === google.maps.DirectionsStatus.OK) {
-            // @ts-ignore
-            directionsRenderer.current.setDirections(result);
-          } else {
-            console.error("Error fetching directions: " + status);
-          }
-        });
-      }
-    }, [mapLoaded, origin, destination]);
-
-    if (!mapLoaded) return <div>Loading...</div>;
-
-    return (
-      <APIProvider apiKey={process.env.NEXT_PUBLIC_MAPS_API_KEY!}>
-        <GMap
-          ref={mapRef}
-          mapId={process.env.NEXT_PUBLIC_MAP_ID}
-          defaultCenter={origin}
-          defaultZoom={15}
-          style={{ width: "100%", height: "500px" }}
-        >
-          <AdvancedMarker position={origin} title="Parking Location" />
-          <AdvancedMarker position={destination} title="Lobby Location" />
-          <div
-            style={{
-              position: "absolute",
-              left: "50%",
-              top: "50%",
-              transform: "translate(-50%, -50%)",
-              width: "100px",
-              height: "100px",
-            }}
-          >
-            <Image
-              src={imagePath}
-              alt="Overlay Image"
-              layout="fill"
-              objectFit="cover"
-            />
-          </div>
-        </GMap>
-      </APIProvider>
-    );
-  };
-
   const filteredServices = initialServices
     .filter(
-      (service) =>
+      (
+        service,
+      ): service is z.infer<typeof Service> & {
+        building: z.infer<typeof AmbulatorySite>;
+      } =>
+        !!service.building &&
         (service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           service.specialties.some((spec) =>
             spec.toLowerCase().includes(searchQuery.toLowerCase()),
           )) &&
-        service.building &&
         (selectedBuilding === "all" ||
           service.building.name === selectedBuilding),
     )
     .sort((a, b) => {
-      if (!a.building || !b.building) return 0;
       return a.building.name.localeCompare(b.building.name);
     });
 
@@ -210,7 +92,7 @@ export default function ServiceList({
             ))}
           </SelectContent>
         </Select>
-        <ParkingNavigation />
+        <LobbyNavigation />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 capitalize overflow-auto text-ellipsis">
@@ -243,106 +125,26 @@ export default function ServiceList({
             <CardFooter className="flex justify-between">
               <Button
                 onClick={() => {
-                  if (service.building) {
-                    openGoogleMaps({
-                      latitude: service.building.parkingLocation.latitude,
-                      longitude: service.building.parkingLocation.longitude,
-                    });
-                  }
+                  openGoogleMaps({
+                    latitude: service.building.parkingLocation.latitude,
+                    longitude: service.building.parkingLocation.longitude,
+                  });
                 }}
               >
                 Find Parking
               </Button>
 
-              <Button
-                onClick={() => {
-                  if (service.building) {
-                    const imagePath = "/path/to/your/local/image.png"; // Adjust as needed
-                    setShowMap(true); // Trigger map modal to open
-                  }
-                }}
-              >
-                Where Is The Lobby?
-              </Button>
-
-              {/* Modal for displaying Google Maps */}
-              {showMap && (
-                <div
-                  className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50"
-                  onClick={() => setShowMap(false)} // Close modal on background click
-                >
-                  <div
-                    className="relative bg-white p-4 rounded-lg w-[80vw] max-w-3xl"
-                    onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
-                  >
-                    <Button
-                      className="absolute top-2 right-2"
-                      onClick={() => setShowMap(false)} // Close button
-                    >
-                      Close
-                    </Button>
-                    {service.building ? (
-                      <GoogleMapWithOverlay
-                        origin={{
-                          lat: service.building.parkingLocation.latitude,
-                          lng: service.building.parkingLocation.longitude,
-                        }}
-                        destination={{
-                          lat: service.building.lobbyLocation.latitude,
-                          lng: service.building.lobbyLocation.longitude,
-                        }}
-                        imagePath="/path/to/your/local/image.png"
-                      />
-                    ) : (
-                      <p>Building information is missing.</p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Modal for displaying Google Maps */}
-              {showMap && (
-                <div
-                  className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50"
-                  onClick={() => setShowMap(false)} // Close modal on background click
-                >
-                  <div
-                    className="relative bg-white p-4 rounded-lg w-[80vw] max-w-3xl"
-                    onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
-                  >
-                    <Button
-                      className="absolute top-2 right-2"
-                      onClick={() => setShowMap(false)} // Close button
-                    >
-                      Close
-                    </Button>
-                    {service.building ? (
-                      <GoogleMapWithOverlay
-                        origin={{
-                          lat: service.building.parkingLocation.latitude,
-                          lng: service.building.parkingLocation.longitude,
-                        }}
-                        destination={{
-                          lat: service.building.lobbyLocation.latitude,
-                          lng: service.building.lobbyLocation.longitude,
-                        }}
-                        imagePath="/BWHLobbyF1.png"
-                      />
-                    ) : (
-                      <p>Building information is missing.</p>
-                    )}
-                  </div>
-                </div>
-              )}
+              <MapDialog
+                site={service.building}
+                trigger={<Button>Where Is The Lobby?</Button>}
+              />
 
               <Button
                 onClick={() => {
-                  if (service.building) {
-                    openGoogleMaps({
-                      latitude: service.building.dropOffLocation.latitude,
-                      longitude: service.building.dropOffLocation.longitude,
-                    });
-                  }
+                  openGoogleMaps({
+                    latitude: service.building.dropOffLocation.latitude,
+                    longitude: service.building.dropOffLocation.longitude,
+                  });
                 }}
                 variant="secondary"
               >
