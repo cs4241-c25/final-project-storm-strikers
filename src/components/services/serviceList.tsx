@@ -18,10 +18,47 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { AmbulatorySite, Service } from "@/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { z } from "zod";
 import MapDialog from "./mapDialog";
 import LobbyNavigation from "./parkingNavigation";
+
+// Calculate the distance between two geographic coordinates using the Haversine formula
+const calculateDistance = (
+  latitude1: number,
+  longitude1: number,
+  latitude2: number,
+  longitude2: number,
+): number => {
+  const earthRadiusMeters = 6371e3; // Earth's radius in meters
+
+  // Convert latitude and longitude from degrees to radians
+  const lat1Radians = (latitude1 * Math.PI) / 180;
+  const lat2Radians = (latitude2 * Math.PI) / 180;
+  const latDifferenceRadians = ((latitude2 - latitude1) * Math.PI) / 180;
+  const lonDifferenceRadians = ((longitude2 - longitude1) * Math.PI) / 180;
+
+  // Apply the Haversine formula
+  const haversineA =
+    Math.sin(latDifferenceRadians / 2) * Math.sin(latDifferenceRadians / 2) +
+    Math.cos(lat1Radians) *
+      Math.cos(lat2Radians) *
+      Math.sin(lonDifferenceRadians / 2) *
+      Math.sin(lonDifferenceRadians / 2);
+
+  const haversineC =
+    2 * Math.atan2(Math.sqrt(haversineA), Math.sqrt(1 - haversineA));
+
+  // Calculate the final distance in meters
+  return earthRadiusMeters * haversineC;
+};
+
+// Helper function to open Google Maps with directions to a destination
+// eslint-disable-next-line @typescript-eslint/no-shadow
+const openGoogleMaps = (location: { latitude: number; longitude: number }) => {
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}`;
+  window.open(url, "_blank");
+};
 
 export default function ServiceList({
   initialServices,
@@ -30,14 +67,46 @@ export default function ServiceList({
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBuilding, setSelectedBuilding] = useState("all");
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
 
-  // Helper function to open Google Maps with directions to a destination
-  const openGoogleMaps = (mapLocation: {
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      // Watch position instead of getting it once
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          setUserLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        },
+      );
+
+      // Cleanup
+      return () => navigator.geolocation.clearWatch(watchId);
+    }
+  }, []);
+
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const checkProximity = (location: {
     latitude: number;
     longitude: number;
   }) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${mapLocation.latitude},${mapLocation.longitude}`;
-    window.open(url, "_blank");
+    if (!userLocation) return "far";
+    const distance = calculateDistance(
+      userLocation.latitude,
+      userLocation.longitude,
+      location.latitude,
+      location.longitude,
+    );
+    if (distance < 100) return "near"; // Within 100m
+    if (distance < 2000) return "medium"; // Within 2km
+    return "far";
   };
 
   const filteredServices = initialServices
@@ -122,34 +191,41 @@ export default function ServiceList({
                 <strong>Phone:</strong> {service.phone}
               </p>
             </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button
-                onClick={() => {
-                  openGoogleMaps({
-                    latitude: service.building.parkingLocation.latitude,
-                    longitude: service.building.parkingLocation.longitude,
-                  });
-                }}
-              >
-                Find Parking
-              </Button>
-
-              <MapDialog
-                site={service.building}
-                trigger={<Button>Where Is The Lobby?</Button>}
-              />
-
-              <Button
-                onClick={() => {
-                  openGoogleMaps({
-                    latitude: service.building.dropOffLocation.latitude,
-                    longitude: service.building.dropOffLocation.longitude,
-                  });
-                }}
-                variant="secondary"
-              >
-                Find Drop-Off
-              </Button>
+            <CardFooter className="flex flex-col lg:flex-row gap-2 justify-between">
+              {checkProximity(service.building.lobbyLocation) === "near" ? (
+                <MapDialog
+                  site={service.building}
+                  trigger={
+                    <Button className="w-full">Find Your Way Inside</Button>
+                  }
+                />
+              ) : (
+                <>
+                  <Button
+                    className="w-full"
+                    onClick={() => {
+                      openGoogleMaps({
+                        latitude: service.building.parkingLocation.latitude,
+                        longitude: service.building.parkingLocation.longitude,
+                      });
+                    }}
+                  >
+                    Find Parking
+                  </Button>
+                  <Button
+                    className="w-full"
+                    onClick={() => {
+                      openGoogleMaps({
+                        latitude: service.building.dropOffLocation.latitude,
+                        longitude: service.building.dropOffLocation.longitude,
+                      });
+                    }}
+                    variant="secondary"
+                  >
+                    Find Drop-Off
+                  </Button>
+                </>
+              )}
             </CardFooter>
           </Card>
         ))}

@@ -111,6 +111,7 @@ function NavigationMap({
     source,
     site.lobbyLocation.latitude,
     site.lobbyLocation.longitude,
+    map,
   ]);
 
   // Dynamically adjust size based on zoom level
@@ -121,8 +122,6 @@ function NavigationMap({
     const scaleFactor = Math.pow(2, zoom - 15); // Exponential scaling
     return new maps.Size(baseSize * scaleFactor, baseSize * scaleFactor);
   }, [maps, zoom]);
-
-
 
   return (
     <GMap
@@ -155,27 +154,30 @@ function NavigationMap({
         label="P"
       />
       <Marker
-          position={{
-            lat: site.lobbyLocation.latitude,
-            lng: site.lobbyLocation.longitude,
-          }}
-          title="Lobby"
-          label="L"
-          icon={
-            maps
-                ? {
-                  url:
-                      site.lobbyLocation.closestStreetAddress === "404 Hanover St, Boston, MA 02113, USA"
-                          ? "/BWH-F1R.png"
-                          : site.lobbyLocation.closestStreetAddress === "53-59 N Margin St, Boston, MA 02113, USA"
-                              ? "/BWH-Faulkner-F1.png"
-                              : site.lobbyLocation.closestStreetAddress === "106-110 Salem St, Boston, MA 02113, USA"
-                                  ? "/BWH-Francis-F1.png"
-                                  : "/default-hospital.png", // Fallback image
-                  scaledSize: iconSize,
-                }
-                : undefined
-          }
+        position={{
+          lat: site.lobbyLocation.latitude,
+          lng: site.lobbyLocation.longitude,
+        }}
+        title="Lobby"
+        label="L"
+        icon={
+          maps
+            ? {
+                url:
+                  site.lobbyLocation.closestStreetAddress ===
+                  "404 Hanover St, Boston, MA 02113, USA"
+                    ? "/BWH-F1R.png"
+                    : site.lobbyLocation.closestStreetAddress ===
+                        "53-59 N Margin St, Boston, MA 02113, USA"
+                      ? "/BWH-Faulkner-F1.png"
+                      : site.lobbyLocation.closestStreetAddress ===
+                          "106-110 Salem St, Boston, MA 02113, USA"
+                        ? "/BWH-Francis-F1.png"
+                        : "/default-hospital.png", // Fallback image
+                scaledSize: iconSize,
+              }
+            : undefined
+        }
       />
       <Marker
         position={{
