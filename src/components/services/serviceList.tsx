@@ -104,8 +104,8 @@ export default function ServiceList({
       location.latitude,
       location.longitude,
     );
-    if (distance < 100) return "near"; // Within 100m
-    if (distance < 2000) return "medium"; // Within 2km
+    if (distance < 2000) return "near"; // Within 2000m
+    if (distance < 5000) return "medium"; // Within 5000m
     return "far";
   };
 
