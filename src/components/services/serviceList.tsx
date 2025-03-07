@@ -195,6 +195,7 @@ export default function ServiceList({
               {checkProximity(service.building.lobbyLocation) === "near" ? (
                 <MapDialog
                   site={service.building}
+                  userLocation={userLocation} // Pass userLocation to MapDialog
                   trigger={
                     <Button className="w-full">Find Your Way Inside</Button>
                   }
@@ -204,10 +205,12 @@ export default function ServiceList({
                   <Button
                     className="w-full"
                     onClick={() => {
-                      openGoogleMaps({
-                        latitude: service.building.parkingLocation.latitude,
-                        longitude: service.building.parkingLocation.longitude,
-                      });
+                      if (userLocation) {
+                        openGoogleMaps({
+                          latitude: userLocation.latitude,
+                          longitude: userLocation.longitude,
+                        });
+                      }
                     }}
                   >
                     Find Parking

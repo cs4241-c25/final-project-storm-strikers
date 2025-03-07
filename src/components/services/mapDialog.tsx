@@ -28,14 +28,12 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 
-type NavigationSource = "dropOff" | "parking";
-
 function NavigationMap({
   site,
-  navigationSource: selectedSource,
+  userLocation,
 }: {
   site: z.infer<typeof AmbulatorySite>;
-  navigationSource: NavigationSource;
+  userLocation: { latitude: number; longitude: number } | null;
 }) {
   const map = useMap();
   const routesLibrary = useMapsLibrary("routes");
@@ -57,27 +55,18 @@ function NavigationMap({
   );
 
   const source = useMemo(
-    () => ({
-      lat:
-        selectedSource === "dropOff"
-          ? site.dropOffLocation.latitude
-          : site.parkingLocation.latitude,
-      lng:
-        selectedSource === "dropOff"
-          ? site.dropOffLocation.longitude
-          : site.parkingLocation.longitude,
-    }),
-    [
-      selectedSource,
-      site.dropOffLocation.latitude,
-      site.dropOffLocation.longitude,
-      site.parkingLocation.latitude,
-      site.parkingLocation.longitude,
-    ],
+    () =>
+      userLocation
+        ? {
+            lat: userLocation.latitude,
+            lng: userLocation.longitude,
+          }
+        : null,
+    [userLocation],
   );
 
   useEffect(() => {
-    if (!routesLibrary || !map) {
+    if (!routesLibrary || !map || !source) {
       return;
     }
 
@@ -194,13 +183,12 @@ function NavigationMap({
 export default function MapDialog({
   trigger,
   site,
+  userLocation,
 }: {
   trigger: ReactElement<ButtonHTMLAttributes<HTMLButtonElement>>;
   site: z.infer<typeof AmbulatorySite>;
+  userLocation: { latitude: number; longitude: number } | null;
 }) {
-  const [navigationSource, setNavigationSource] =
-    useState<NavigationSource>("parking");
-
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
@@ -208,30 +196,17 @@ export default function MapDialog({
         <DialogHeader>
           <DialogTitle>Lobby Directions</DialogTitle>
           <DialogDescription>
-            Directions are shown for walking only. Please be aware of your
-            surroundings and call 911 for emergencies.
+            Directions from your current location to the lobby. Please be aware
+            of your surroundings.
           </DialogDescription>
         </DialogHeader>
         <APIProvider apiKey={process.env.NEXT_PUBLIC_MAPS_API_KEY ?? ""}>
-          <NavigationMap site={site} navigationSource={navigationSource} />
+          <NavigationMap site={site} userLocation={userLocation} />
         </APIProvider>
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="secondary">Close</Button>
           </DialogClose>
-
-          <Button
-            onClick={() => {
-              if (navigationSource === "dropOff") {
-                setNavigationSource("parking");
-              } else {
-                setNavigationSource("dropOff");
-              }
-            }}
-          >
-            Show {navigationSource === "dropOff" ? "Parking" : "Drop-Off"}{" "}
-            Directions
-          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
