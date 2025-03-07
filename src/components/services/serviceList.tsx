@@ -39,6 +39,13 @@ export default function ServiceList({
     window.open(url, "_blank");
   };
 
+  // Helper function to open Google Maps with directions from a start to a destination
+  const openGoogleMapsLobby = (startLocation: { latitude: number; longitude: number }, destinationLocation: { latitude: number; longitude: number }) => {
+    const url = `https://www.google.com/maps/dir/?api=1&origin=${startLocation.latitude},${startLocation.longitude}&destination=${destinationLocation.latitude},${destinationLocation.longitude}`;
+    window.open(url, "_blank");
+  };
+
+
   const filteredServices = initialServices
     .filter(
       (service) =>
@@ -135,6 +142,19 @@ export default function ServiceList({
               </Button>
 
               <Button
+                  onClick={() => {
+                    if (service.building) {
+                      openGoogleMapsLobby(
+                          {latitude: service.building.parkingLocation.latitude, longitude: service.building.parkingLocation.longitude},
+                          {latitude: service.building.lobbyLocation.latitude, longitude: service.building.lobbyLocation.longitude}
+                      );
+                    }
+                  }}
+              >
+                Where Is The Lobby?
+              </Button>
+
+              <Button
                 onClick={() => {
                   if (service.building) {
                     openGoogleMaps({
@@ -154,3 +174,4 @@ export default function ServiceList({
     </main>
   );
 }
+
