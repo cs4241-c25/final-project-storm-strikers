@@ -108,8 +108,5 @@ Alek:
   - Primary lobby navigation.
   - Dialog styling
 
-Brian
-  -
-
 Link to Video Demo:
 https://wpi0-my.sharepoint.com/:v:/g/personal/irwright_wpi_edu/EfL1A3OTrylIjznRePWbFOUBoQGqaR7iIWd3dy_WBgZeFw?e=2bZT6x
