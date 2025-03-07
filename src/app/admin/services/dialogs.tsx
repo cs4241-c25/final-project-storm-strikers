@@ -58,7 +58,7 @@ function ServiceLabelsAndInputs({
             className="col-start-1 self-center text-right"
             htmlFor={idElementId}
           >
-            ID:
+            ID*:
           </Label>
           <Input
             className="col-start-2 cursor-not-allowed opacity-50"
@@ -74,7 +74,7 @@ function ServiceLabelsAndInputs({
         className="col-start-1 self-center text-right"
         htmlFor={nameElementId}
       >
-        Name:
+        Name*:
       </Label>
       <Input
         className="col-start-2"
@@ -87,7 +87,7 @@ function ServiceLabelsAndInputs({
         className="col-start-1 self-center text-right"
         htmlFor={specialtiesElementId}
       >
-        Specialties:
+        Specialties*:
       </Label>
       <MultiInput
         className="col-start-2"
@@ -131,7 +131,7 @@ function ServiceLabelsAndInputs({
         className="col-start-1 self-center text-right"
         htmlFor={phoneElementId}
       >
-        Phone:
+        Phone*:
       </Label>
       <Input
         className="col-start-2"
@@ -144,7 +144,7 @@ function ServiceLabelsAndInputs({
         className="col-start-1 self-center text-right"
         htmlFor={hoursElementId}
       >
-        Hours:
+        Hours*:
       </Label>
       <Input
         className="col-start-2"
@@ -192,6 +192,9 @@ export function AddServiceDialog({
         <form action={action} className="contents" ref={formRef}>
           <ServiceLabelsAndInputs />
           <DialogFooter>
+            <p className="order-1 sm:-order-1 sm:grow self-center text-muted-foreground text-sm">
+              *Required
+            </p>
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
@@ -249,6 +252,9 @@ export function EditServicePopup({
         <form className="contents" action={action} ref={formRef}>
           <ServiceLabelsAndInputs service={service} />
           <DialogFooter>
+            <p className="order-1 sm:-order-1 sm:grow self-center text-muted-foreground text-sm">
+              *Required
+            </p>
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>

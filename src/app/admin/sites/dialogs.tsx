@@ -447,7 +447,7 @@ function SiteLabelsAndInputs({
             className="col-start-1 self-center text-right"
             htmlFor={idElementId}
           >
-            ID:
+            ID*:
           </Label>
           <Input
             className="col-start-2 cursor-not-allowed opacity-50"
@@ -462,7 +462,7 @@ function SiteLabelsAndInputs({
         className="col-start-1 self-center text-right"
         htmlFor={nameElementId}
       >
-        Name:
+        Name*:
       </Label>
       <Input
         className="col-start-2"
@@ -475,7 +475,7 @@ function SiteLabelsAndInputs({
         className="col-start-1 self-center text-right"
         htmlFor={parkingPriceElementId}
       >
-        Parking Price:
+        Parking Price*:
       </Label>
       <div className="relative col-start-2">
         <span className="absolute left-2 top-1/2 -translate-y-1/2">$</span>
@@ -495,7 +495,7 @@ function SiteLabelsAndInputs({
         className="col-start-1 self-center text-right"
         htmlFor={lobbyLocationElementId}
       >
-        Lobby Location:
+        Lobby Location*:
       </Label>
       <SetSiteLocationPopup
         locations={mapLocations}
@@ -520,7 +520,7 @@ function SiteLabelsAndInputs({
         className="col-start-1 self-center text-right"
         htmlFor={parkingLocationTextElementId}
       >
-        Parking Location:
+        Parking Location*:
       </Label>
       <SetSiteLocationPopup
         locations={mapLocations}
@@ -545,7 +545,7 @@ function SiteLabelsAndInputs({
         className="col-start-1 self-center text-right"
         htmlFor={dropOffLocationElementId}
       >
-        Drop-Off Location:
+        Drop-Off Location*:
       </Label>
       <SetSiteLocationPopup
         locations={mapLocations}
@@ -630,6 +630,9 @@ export function AddSiteDialog({
         <form action={action} className="contents" ref={formRef}>
           <SiteLabelsAndInputs />
           <DialogFooter>
+            <p className="order-1 sm:-order-1 sm:grow self-center text-muted-foreground text-sm">
+              *Required
+            </p>
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
@@ -687,6 +690,9 @@ export function EditSitePopup({
         <form className="contents" action={action} ref={formRef}>
           <SiteLabelsAndInputs site={site} />
           <DialogFooter>
+            <p className="order-1 sm:-order-1 sm:grow self-center text-muted-foreground text-sm">
+              *Required
+            </p>
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
