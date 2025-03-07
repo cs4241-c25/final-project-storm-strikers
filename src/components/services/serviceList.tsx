@@ -103,7 +103,7 @@ export default function ServiceList({
         directionsService.current = new google.maps.DirectionsService();
         directionsRenderer.current = new google.maps.DirectionsRenderer({
           map: mapRef.current,
-          suppressMarkers: true, // Optional: You can control marker visibility on directions
+          suppressMarkers: true,
         });
       }
 
@@ -148,7 +148,7 @@ export default function ServiceList({
           {/* Add marker for destination (lobby location) */}
           <AdvancedMarker position={destination} title="Lobby Location" />
 
-          {/* Custom overlay with the image (optional) */}
+          {/* Custom overlay with the image */}
           <div
             style={{
               position: "absolute",
@@ -266,21 +266,48 @@ export default function ServiceList({
               <Button
                 onClick={() => {
                   if (service.building) {
-                    openGoogleMapsLobby(
-                      {
-                        latitude: service.building.parkingLocation.latitude,
-                        longitude: service.building.parkingLocation.longitude,
-                      },
-                      {
-                        latitude: service.building.lobbyLocation.latitude,
-                        longitude: service.building.lobbyLocation.longitude,
-                      },
-                    );
+                    const imagePath = "/path/to/your/local/image.png"; // Adjust as needed
+                    setShowMap(true); // Trigger map modal to open
                   }
                 }}
               >
                 Where Is The Lobby?
               </Button>
+
+              {/* Modal for displaying Google Maps */}
+              {showMap && (
+                <div
+                  className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50"
+                  onClick={() => setShowMap(false)} // Close modal on background click
+                >
+                  <div
+                    className="relative bg-white p-4 rounded-lg w-[80vw] max-w-3xl"
+                    onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
+                  >
+                    <Button
+                      className="absolute top-2 right-2"
+                      onClick={() => setShowMap(false)} // Close button
+                    >
+                      Close
+                    </Button>
+                    {service.building ? (
+                      <GoogleMapWithOverlay
+                        origin={{
+                          lat: service.building.parkingLocation.latitude,
+                          lng: service.building.parkingLocation.longitude,
+                        }}
+                        destination={{
+                          lat: service.building.lobbyLocation.latitude,
+                          lng: service.building.lobbyLocation.longitude,
+                        }}
+                        imagePath="/path/to/your/local/image.png"
+                      />
+                    ) : (
+                      <p>Building information is missing.</p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <Button
                 onClick={() => {
