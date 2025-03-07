@@ -1,20 +1,23 @@
 
 ### Deliverables
+CS4241 Final Project - Team S - Brigham & Womens Web Application
+
 Our web application was designed for visitors and users at Brigham & Womens. As a user you have the ability to see all services associated with the hospital as well 
 as find directios to certain common areas within the hospital. This includes the lobby, parking, and drop-off zones. As a signed in user, you have the ability to create
 and edit services and sites. With this functionality, hospital staff are able to reorganize services and edit them easily. Users have the ability to 'mark your car' 
-which is helpful to be able to navigate to and from the lobby to a users vehicle. We creating a new site, there is a pop-up map where a user can place pins for the 
+which is helpful to be able to navigate to and from the lobby to a users vehicle. When creating a new site, there is a pop-up map where a user can place pins for the 
 lobby, drop-off, and parking. This allows signed-in users to easliy edit/add sites.
 
 The link for our deployed web application is:
 https://final-project-storm-strikers.vercel.app
 
+Challenges:
+
 When developing we ran into some challenges. One of the big challenges our team faced was integrating the Google Maps API. Although we had some functionalities working 
 for the services and sites, to navigate to the lobby and find locations was challenging. Another challenge we ran into was the overlay for the buildings. We had some png
 of the hospital's main floor layout. This was so a user could naviage to the lobby and the building floor plan would be overlayed on top of the gooogle maps.
 
-
-
+Tech Stack & Installation:
 
 WebStorm Run Configurations
 Use the provided run configurations—Start Dev, Start Prod, and Debug (use Debug after Start Dev)—to interact with the repository via WebStorm. These configurations are customized to properly connect the repository to WebStorm. Running files directly or outside of these configurations may lead to unexpected results.
@@ -79,10 +82,8 @@ pnpm is a fast package manager that optimizes dependency management by using sym
 To install dependencies using pnpm, run: pnpm install
 
 
-
-
-
 Group Memeber Contributions:
+
 Ian:
   - Site table
   - Optimistic state on site/service tables
@@ -109,3 +110,6 @@ Alek:
 
 Brian
   -
+
+Link to Video Demo:
+https://wpi0-my.sharepoint.com/:v:/g/personal/irwright_wpi_edu/EfL1A3OTrylIjznRePWbFOUBoQGqaR7iIWd3dy_WBgZeFw?e=2bZT6x
