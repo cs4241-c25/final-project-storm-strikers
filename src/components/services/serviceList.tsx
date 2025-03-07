@@ -18,9 +18,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Service } from "@/types";
-import { useState } from "react";
+import {
+  AdvancedMarker,
+  APIProvider,
+  Map as GMap,
+} from "@vis.gl/react-google-maps";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import type { z } from "zod";
 import ParkingNavigation from "./parkingNavigation";
+
+// Extend the window object to include initGoogleMaps
+declare global {
+  interface Window {
+    initGoogleMaps: () => void;
+  }
+}
 
 export default function ServiceList({
   initialServices,
@@ -29,6 +42,8 @@ export default function ServiceList({
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBuilding, setSelectedBuilding] = useState("all");
+  const [showMap, setShowMap] = useState(false); // Controls modal visibility
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   // Helper function to open Google Maps with directions to a destination
   const openGoogleMaps = (mapLocation: {
@@ -39,13 +54,120 @@ export default function ServiceList({
     window.open(url, "_blank");
   };
 
-  // Helper function to open Google Maps with directions from a start to a destination
-  const openGoogleMapsLobby = (
-    startLocation: { latitude: number; longitude: number },
-    destinationLocation: { latitude: number; longitude: number },
-  ) => {
-    const url = `https://www.google.com/maps/dir/?api=1&origin=${startLocation.latitude},${startLocation.longitude}&destination=${destinationLocation.latitude},${destinationLocation.longitude}`;
-    window.open(url, "_blank");
+  // Function to load Google Maps script only once
+  const loadGoogleMapsScript = (callback: () => void) => {
+    if (window.google && window.google.maps) {
+      callback();
+      return;
+    }
+
+    // Prevent duplicate script insertion
+    if (document.querySelector("script[src*='maps.googleapis.com']")) {
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_MAPS_API_KEY}&libraries=geometry,places,marker&callback=initGoogleMaps&map_ids=${process.env.NEXT_PUBLIC_MAP_ID}`;
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+
+    (window as any).initGoogleMaps = () => {
+      callback();
+    };
+  };
+
+  // @ts-ignore
+  const GoogleMapWithOverlay = ({ origin, destination, imagePath }) => {
+    const mapRef = useRef<google.maps.Map | null>(null); // Reference to the map instance
+    const directionsService = useRef<google.maps.DirectionsService | null>(
+      null,
+    ); // Directions service instance
+    const directionsRenderer = useRef<google.maps.DirectionsRenderer | null>(
+      null,
+    ); // Directions renderer instance
+    const [mapLoaded, setMapLoaded] = useState(false); // Track map loading state
+
+    useEffect(() => {
+      if (!mapLoaded) {
+        loadGoogleMapsScript(() => {
+          console.log("Google Maps API is now loaded.");
+          setMapLoaded(true); // Set map as loaded after the script is loaded
+        });
+      }
+    }, [mapLoaded]);
+
+    useEffect(() => {
+      if (mapLoaded && mapRef.current && !directionsService.current) {
+        // Initialize directions service and renderer when map is loaded
+        directionsService.current = new google.maps.DirectionsService();
+        directionsRenderer.current = new google.maps.DirectionsRenderer({
+          map: mapRef.current,
+          suppressMarkers: true, // Optional: You can control marker visibility on directions
+        });
+      }
+
+      if (
+        directionsService.current &&
+        directionsRenderer.current &&
+        origin &&
+        destination
+      ) {
+        const request: google.maps.DirectionsRequest = {
+          origin: new google.maps.LatLng(origin.lat, origin.lng),
+          destination: new google.maps.LatLng(destination.lat, destination.lng),
+          travelMode: google.maps.TravelMode.DRIVING, // Can change to WALKING, BICYCLING, etc.
+        };
+
+        // Request directions from Google Maps API
+        directionsService.current.route(request, (result, status) => {
+          if (status === google.maps.DirectionsStatus.OK) {
+            // @ts-ignore
+            directionsRenderer.current.setDirections(result); // Set the directions on the map
+          } else {
+            console.error("Error fetching directions: " + status);
+          }
+        });
+      }
+    }, [mapLoaded, origin, destination]);
+
+    if (!mapLoaded) return <div>Loading...</div>; // Prevent map rendering until it's fully loaded
+
+    return (
+      <APIProvider apiKey={process.env.NEXT_PUBLIC_MAPS_API_KEY!}>
+        <GMap
+          ref={mapRef}
+          mapId={process.env.NEXT_PUBLIC_MAP_ID}
+          defaultCenter={origin}
+          defaultZoom={15}
+          style={{ width: "100%", height: "500px" }}
+        >
+          {/* Add marker for origin (parking location) */}
+          <AdvancedMarker position={origin} title="Parking Location" />
+
+          {/* Add marker for destination (lobby location) */}
+          <AdvancedMarker position={destination} title="Lobby Location" />
+
+          {/* Custom overlay with the image (optional) */}
+          <div
+            style={{
+              position: "absolute",
+              left: `${destination.lng}%`,
+              top: `${destination.lat}%`,
+              width: "100px",
+              height: "100px",
+            }}
+          >
+            <Image
+              src={imagePath}
+              alt="Overlay Image"
+              layout="fill"
+              objectFit="cover"
+            />
+          </div>
+        </GMap>
+      </APIProvider>
+    );
   };
 
   const filteredServices = initialServices
