@@ -7,7 +7,7 @@ which is helpful to be able to navigate to and from the lobby to a users vehicle
 lobby, drop-off, and parking. This allows signed-in users to easliy edit/add sites.
 
 The link for our deployed web application is:
-https://final-project-storm-strikers-je4dsbibb-landaman-projects.vercel.app
+https://final-project-storm-strikers.vercel.app
 
 When developing we ran into some challenges. One of the big challenges our team faced was integrating the Google Maps API. Although we had some functionalities working 
 for the services and sites, to navigate to the lobby and find locations was challenging. Another challenge we ran into was the overlay for the buildings. We had some png
@@ -84,7 +84,12 @@ To install dependencies using pnpm, run: pnpm install
 
 Group Memeber Contributions:
 Ian:
-  -
+  - Site table
+  - Optimistic state on site/service tables
+  - ComboBox and MultiSelect form components
+  - repo setup
+  - Navigation from parking/dropoff to lobby
+  - map image overlay
 
 Emerson:
   - Auth
