@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Service } from "@/types";
+import type { AmbulatorySite, Service } from "@/types";
 import {
   ColumnDef,
   flexRender,
@@ -36,6 +36,10 @@ const DeleteActionContext = createContext<(input: FormData) => void>(() => {
   /* ignore */
 });
 
+const AmbulatorySitesContext = createContext<z.infer<typeof AmbulatorySite>[]>(
+  [],
+);
+
 const DropdownColumn = function DropdownEdit({
   service,
 }: {
@@ -44,6 +48,7 @@ const DropdownColumn = function DropdownEdit({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const editAction = use(EditActionContext);
   const deleteAction = use(DeleteActionContext);
+  const ambulatorySites = use(AmbulatorySitesContext);
 
   // when the service changes, close the dropdown
   useEffect(() => setDropdownOpen(false), [service]);
@@ -59,6 +64,7 @@ const DropdownColumn = function DropdownEdit({
       <DropdownMenuContent>
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <EditServicePopup
+          ambulatorySites={ambulatorySites}
           service={service}
           trigger={
             <DropdownMenuItem>
@@ -126,11 +132,13 @@ export default function ServiceTable({
   className,
   editAction,
   deleteAction,
+  ambulatorySites,
 }: {
   services: z.infer<typeof Service>[];
   className: string | undefined;
   editAction: (input: FormData) => void;
   deleteAction: (input: FormData) => void;
+  ambulatorySites: z.infer<typeof AmbulatorySite>[];
 }) {
   // For some reason, the updates don't seem to reach the table
   // unless we do this...
@@ -151,57 +159,59 @@ export default function ServiceTable({
       {/* Drill the edit stuff down WITHOUT triggering column re-renders */}
       <EditActionContext.Provider value={editAction}>
         <DeleteActionContext.Provider value={deleteAction}>
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead
-                        key={header.id}
-                        style={{ width: `${header.getSize()}px` }}
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
+          <AmbulatorySitesContext.Provider value={ambulatorySites}>
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead
+                          key={header.id}
+                          style={{ width: `${header.getSize()}px` }}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </TableHead>
+                      );
+                    })}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </AmbulatorySitesContext.Provider>
         </DeleteActionContext.Provider>
       </EditActionContext.Provider>
     </div>

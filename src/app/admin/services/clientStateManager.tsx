@@ -121,8 +121,10 @@ const LoadingSite = {
  */
 export default function ClientStateManager({
   serverState,
+  ambulatorySites,
 }: {
   serverState: z.infer<typeof Service>[];
+  ambulatorySites: z.infer<typeof AmbulatorySite>[];
 }) {
   const {
     execute: addServiceExecute,
@@ -147,7 +149,11 @@ export default function ClientStateManager({
         {
           ...newService,
           id: "Loading...",
-          building: newService.building ? LoadingSite : undefined,
+          building: newService.building
+            ? (ambulatorySites.find(
+                (site) => site.id === newService.building,
+              ) ?? LoadingSite)
+            : undefined,
         },
       ];
     },
@@ -178,7 +184,9 @@ export default function ClientStateManager({
               building: editedService.building
                 ? service.building?.id === editedService.building
                   ? service.building
-                  : LoadingSite
+                  : (ambulatorySites.find(
+                      (site) => site.id === editedService.building,
+                    ) ?? LoadingSite)
                 : undefined,
             }
           : service,
@@ -223,6 +231,7 @@ export default function ClientStateManager({
       <div className="flex flex-row justify-between items-end">
         <h1 className="text-3xl font-bold">Ambulatory Services</h1>
         <AddServiceDialog
+          ambulatorySites={ambulatorySites}
           trigger={
             <Button className="self-end">
               <Plus />
@@ -251,6 +260,7 @@ export default function ClientStateManager({
         pastTense="deleted"
       />
       <ServiceTable
+        ambulatorySites={ambulatorySites}
         className="grow"
         services={deleteServiceOptimisticState}
         editAction={editServiceExecute}

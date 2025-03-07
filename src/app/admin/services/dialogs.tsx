@@ -14,6 +14,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
   Dialog,
   DialogClose,
   DialogContent,
@@ -25,11 +33,19 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Service } from "@/types";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { AmbulatorySite, Service } from "@/types";
+import { Check, ChevronsUpDown } from "lucide-react";
 import React, {
   ButtonHTMLAttributes,
   Fragment,
   ReactElement,
+  useEffect,
   useId,
   useRef,
   useState,
@@ -38,8 +54,10 @@ import { z } from "zod";
 
 function ServiceLabelsAndInputs({
   service,
+  ambulatorySites,
 }: {
   service?: Partial<z.infer<typeof Service>>;
+  ambulatorySites: z.infer<typeof AmbulatorySite>[];
 }) {
   const idElementId = useId();
   const nameElementId = useId();
@@ -49,6 +67,10 @@ function ServiceLabelsAndInputs({
   const phoneElementId = useId();
   const hoursElementId = useId();
   const buildingElementId = useId();
+
+  const [selectedBuilding, setSelectedBuilding] = useState(service?.building);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  useEffect(() => setPopoverOpen(false), [setPopoverOpen, selectedBuilding]);
 
   return (
     <div className="grid grid-cols-[min-content_auto] gap-x-5 gap-y-2">
@@ -156,12 +178,60 @@ function ServiceLabelsAndInputs({
       >
         Building:
       </Label>
-      <Input
-        className="col-start-2"
-        defaultValue={service?.building?.id}
-        name="building"
-        id={buildingElementId}
-      />
+      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+        <PopoverTrigger asChild>
+          <div className="col-start-2 relative">
+            <Input
+              className="pointer-events-none"
+              value={selectedBuilding?.name ?? ""}
+              readOnly
+              id={buildingElementId}
+            />
+            <Input
+              className="hidden"
+              readOnly
+              name="building"
+              value={selectedBuilding?.id ?? ""}
+            />
+            <ChevronsUpDown className="opacity-50 absolute top-1/2 -translate-y-1/2 h-1/2 right-2" />
+          </div>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="p-0">
+          <Command>
+            <CommandInput placeholder="Search buildings..."></CommandInput>
+            <CommandList>
+              <CommandEmpty>No buildings found.</CommandEmpty>
+              <CommandGroup>
+                {ambulatorySites.map((site) => (
+                  <CommandItem
+                    value={site.name}
+                    key={site.id}
+                    onSelect={() => {
+                      // Selecting what you already have clears selection
+                      if (selectedBuilding?.id === site.id) {
+                        setSelectedBuilding(undefined);
+                        return;
+                      }
+
+                      setSelectedBuilding(site);
+                    }}
+                  >
+                    {site.name}
+                    <Check
+                      className={cn(
+                        "ml-auto",
+                        site.id === selectedBuilding?.id
+                          ? "opacity-100"
+                          : "opacity-0",
+                      )}
+                    />
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
@@ -169,9 +239,11 @@ function ServiceLabelsAndInputs({
 export function AddServiceDialog({
   trigger,
   action,
+  ambulatorySites,
 }: {
   trigger: ReactElement<ButtonHTMLAttributes<HTMLButtonElement>>;
   action: (input: FormData) => void;
+  ambulatorySites: z.infer<typeof AmbulatorySite>[];
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -187,7 +259,7 @@ export function AddServiceDialog({
           </DialogDescription>
         </DialogHeader>
         <form action={action} className="contents" ref={formRef}>
-          <ServiceLabelsAndInputs />
+          <ServiceLabelsAndInputs ambulatorySites={ambulatorySites} />
           <DialogFooter>
             <p className="order-1 sm:-order-1 sm:grow self-center text-muted-foreground text-sm">
               *Required
@@ -218,10 +290,12 @@ export function EditServicePopup({
   service,
   trigger,
   action,
+  ambulatorySites,
 }: {
   service: z.infer<typeof Service>;
   trigger: ReactElement<ButtonHTMLAttributes<HTMLButtonElement>>;
   action: (input: FormData) => void;
+  ambulatorySites: z.infer<typeof AmbulatorySite>[];
 }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -247,7 +321,10 @@ export function EditServicePopup({
           </DialogDescription>
         </DialogHeader>
         <form className="contents" action={action} ref={formRef}>
-          <ServiceLabelsAndInputs service={service} />
+          <ServiceLabelsAndInputs
+            service={service}
+            ambulatorySites={ambulatorySites}
+          />
           <DialogFooter>
             <p className="order-1 sm:-order-1 sm:grow self-center text-muted-foreground text-sm">
               *Required
