@@ -422,7 +422,12 @@ function SetServiceOverlayPopup({
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="secondary">Cancel</Button>
+            <Button
+              variant="secondary"
+              onClick={() => setOverlay(finalOverlay)}
+            >
+              Cancel
+            </Button>
           </DialogClose>
           <DialogClose asChild>
             <Button
@@ -586,7 +591,16 @@ function SetSiteLocationPopup({
         </ContextMenu>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="secondary">Cancel</Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setLocations(
+                  finalLocations.map((mapLocation) => mapLocation.location),
+                );
+              }}
+            >
+              Cancel
+            </Button>
           </DialogClose>
           <DialogClose asChild>
             <Button
