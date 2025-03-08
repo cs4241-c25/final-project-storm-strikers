@@ -19,6 +19,7 @@ export const AmbulatorySite = z.strictObject({
   overlay: z
     .strictObject({
       image: zfd.text(),
+      rotation: zfd.numeric(),
       topLeft: mapLocation.omit({ closestStreetAddress: true }),
       bottomRight: mapLocation.omit({ closestStreetAddress: true }),
     })

@@ -1,5 +1,6 @@
 "use client";
 
+import { RotatableOverlay } from "@/components/rotatableOverlay";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -74,18 +75,24 @@ import React, {
 import type { z } from "zod";
 import { getOverlayAction } from "./actions";
 
+type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>;
+    }
+  : T;
+
 type PartialSiteLocation = Partial<
   z.infer<typeof AmbulatorySite>["parkingLocation"]
 >;
-
-type PartialOverlay = Partial<{
-  topLeft: Omit<PartialSiteLocation, "closestStreetAddress">;
-  bottomRight: Omit<PartialSiteLocation, "closestStreetAddress">;
+type PartialOverlay = DeepPartial<
+  Exclude<z.infer<typeof AmbulatorySite>["overlay"], undefined>
+>;
+type PartialOverlayRequiredBase64 = Omit<
+  PartialOverlay,
+  "image" | "rotation"
+> & {
   image: string;
-}>;
-
-type PartialOverlayRequiredBase64 = Omit<PartialOverlay, "image"> & {
-  image: string;
+  rotation: number;
 };
 
 const DefaultLatitude = 42.36529; // this is boston
@@ -174,20 +181,7 @@ function DraggableOverlayRectangle({
 
   useMemo(() => rectangle.setBounds(bounds), [bounds, rectangle]);
 
-  useEffect(() => {
-    const createdGroundOverlay = new google.maps.GroundOverlay(
-      overlay.image,
-      bounds,
-      {
-        map,
-        opacity: 0.65,
-      },
-    );
-
-    return () => createdGroundOverlay.setMap(null); // clear old overlay
-  }, [bounds, map, overlay.image]);
-
-  return <></>;
+  return <RotatableOverlay {...overlay} bounds={bounds} />;
 }
 
 function SiteComboBox({
@@ -316,42 +310,6 @@ function SiteComboBox({
   );
 }
 
-function rotateImage(base64Image: string, clockwise: boolean) {
-  return new Promise<string>((resolve) => {
-    const image = new Image();
-    image.src = base64Image;
-    image.onload = () => {
-      // Create a canvas with the given dimensions, to draw the rotated image into
-      const canvas = document.createElement("canvas");
-      canvas.width = image.width;
-      canvas.height = image.height;
-
-      const canvasContext2d = canvas.getContext("2d");
-
-      // apply the rotation
-      if (clockwise) {
-        // We must update the dimensions or the image will distort
-        canvas.width = image.height;
-        canvas.height = image.width;
-        canvasContext2d?.translate(canvas.width, 0);
-        canvasContext2d?.rotate((90 * Math.PI) / 180);
-      } else {
-        // We must update the dimensions or the image will distort
-        canvas.width = image.height;
-        canvas.height = image.width;
-        canvasContext2d?.translate(0, canvas.height);
-        canvasContext2d?.rotate((-90 * Math.PI) / 180);
-      }
-
-      // draw the image
-      canvasContext2d?.drawImage(image, 0, 0);
-
-      // output as base64 again
-      return resolve(canvas.toDataURL("image/png", 100));
-    };
-  });
-}
-
 function SetServiceOverlayPopup({
   locations: finalLocations,
   trigger,
@@ -363,7 +321,7 @@ function SetServiceOverlayPopup({
     location: PartialSiteLocation;
   }[];
   overlayLocation: PartialOverlayRequiredBase64;
-  setOverlay: (newOverlay: PartialOverlay) => void;
+  setOverlay: (newOverlay: PartialOverlayRequiredBase64) => void;
   trigger: ReactElement<ButtonHTMLAttributes<HTMLButtonElement>>;
 }) {
   const mapId = useId();
@@ -434,7 +392,7 @@ function SetServiceOverlayPopup({
                   onClick={async () => {
                     setOverlay({
                       ...overlayLocation,
-                      image: await rotateImage(overlayLocation.image, false),
+                      rotation: overlayLocation.rotation - 45,
                     });
                   }}
                 >
@@ -445,7 +403,7 @@ function SetServiceOverlayPopup({
                   onClick={async () => {
                     setOverlay({
                       ...overlayLocation,
-                      image: await rotateImage(overlayLocation.image, true),
+                      rotation: overlayLocation.rotation + 45,
                     });
                   }}
                 >
@@ -924,7 +882,11 @@ function SiteLabelsAndInputs({
               setLobbyOverlay({ ...lobbyOverlay, image: undefined });
               return;
             }
-            setLobbyOverlay({ ...lobbyOverlay, image: reader.result });
+            setLobbyOverlay({
+              ...lobbyOverlay,
+              image: reader.result,
+              rotation: 0,
+            });
           }}
         />
         {typeof lobbyOverlay.image === "string" ? (
@@ -966,6 +928,12 @@ function SiteLabelsAndInputs({
         value={lobbyOverlay.image ?? ""}
         readOnly
         name="overlay.image"
+      />
+      <Input
+        className="hidden"
+        value={lobbyOverlay.rotation ?? ""}
+        readOnly
+        name="overlay.rotation"
       />
       <Input
         className="hidden"
