@@ -1,5 +1,6 @@
 "use client";
 
+import { getOverlayAction } from "@/app/actions";
 import { AmbulatorySite } from "@/types";
 import {
   APIProvider,
@@ -8,14 +9,11 @@ import {
   useMap,
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
-import {
-  ButtonHTMLAttributes,
-  ReactElement,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useAction } from "next-safe-action/hooks";
+import { ButtonHTMLAttributes, ReactElement, useEffect, useMemo } from "react";
+import { toast } from "sonner";
 import { z } from "zod";
+import { RotatableOverlay } from "../rotatableOverlay";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -35,10 +33,20 @@ function NavigationMap({
   site: z.infer<typeof AmbulatorySite>;
   userLocation: { latitude: number; longitude: number } | null;
 }) {
+  const {
+    execute: loadOverlay,
+    result: { data: overlay },
+  } = useAction(getOverlayAction);
+  // Load the overlay on component mount
+  useEffect(() => {
+    if (!site?.id) {
+      return;
+    }
+    loadOverlay({ id: site?.id });
+  }, [loadOverlay, site?.id]);
+
   const map = useMap();
   const routesLibrary = useMapsLibrary("routes");
-  const maps = useMapsLibrary("core");
-  const [zoom, setZoom] = useState(map?.getZoom() || 15); // Default to 15 if undefined
   const directionsService = useMemo(
     () => (routesLibrary ? new routesLibrary.DirectionsService() : null),
     [routesLibrary],
@@ -79,20 +87,13 @@ function NavigationMap({
       travelMode: routesLibrary.TravelMode.WALKING,
     };
 
-    const zoomListener = map.addListener("zoom_changed", () => {
-      const newZoom = map.getZoom() ?? 15; // Default to 15 if undefined
-      console.log("Current Zoom Level:", newZoom); // Log zoom level
-      setZoom(newZoom);
-    });
-
     directionsService?.route(request, (result, directionStatus) => {
       if (directionStatus === google.maps.DirectionsStatus.OK) {
         directionsRenderer?.setDirections(result);
       } else {
-        console.error("Error fetching directions: " + directionStatus);
+        toast.error("Encountered an error navigating: " + directionStatus);
       }
     });
-    return () => google.maps.event.removeListener(zoomListener);
   }, [
     directionsService,
     directionsRenderer,
@@ -102,15 +103,6 @@ function NavigationMap({
     site.lobbyLocation.longitude,
     map,
   ]);
-
-  // Dynamically adjust size based on zoom level
-  const iconSize = useMemo(() => {
-    if (!maps) return undefined;
-
-    const baseSize = 7; // Base size at zoom level 15
-    const scaleFactor = Math.pow(2, zoom - 15); // Exponential scaling
-    return new maps.Size(baseSize * scaleFactor, baseSize * scaleFactor);
-  }, [maps, zoom]);
 
   return (
     <GMap
@@ -149,24 +141,6 @@ function NavigationMap({
         }}
         title="Lobby"
         label="L"
-        icon={
-          maps
-            ? {
-                url:
-                  site.lobbyLocation.closestStreetAddress ===
-                  "404 Hanover St, Boston, MA 02113, USA"
-                    ? "/BWH-F1R.png"
-                    : site.lobbyLocation.closestStreetAddress ===
-                        "53-59 N Margin St, Boston, MA 02113, USA"
-                      ? "/BWH-Faulkner-F1.png"
-                      : site.lobbyLocation.closestStreetAddress ===
-                          "106-110 Salem St, Boston, MA 02113, USA"
-                        ? "/BWH-Francis-F1.png"
-                        : "/default-hospital.png", // Fallback image
-                scaledSize: iconSize,
-              }
-            : undefined
-        }
       />
       <Marker
         position={{
@@ -176,6 +150,17 @@ function NavigationMap({
         title="Drop-Off"
         label="D"
       />
+      {overlay && (
+        <RotatableOverlay
+          {...overlay}
+          bounds={{
+            north: overlay.topLeft.latitude,
+            east: overlay.topLeft.longitude,
+            south: overlay.bottomRight.latitude,
+            west: overlay.bottomRight.longitude,
+          }}
+        />
+      )}
     </GMap>
   );
 }
