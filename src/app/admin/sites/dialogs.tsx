@@ -387,35 +387,71 @@ function SetServiceOverlayPopup({
                 />
               ))}
               <div className="flex flex-row gap-1 absolute left-2 top-2">
-                <Button
-                  variant="secondary"
-                  onClick={async () => {
-                    setOverlay({
-                      ...overlayLocation,
-                      rotation: overlayLocation.rotation - 45,
-                    });
-                  }}
-                >
-                  <RotateCcw />
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={async () => {
-                    setOverlay({
-                      ...overlayLocation,
-                      rotation: overlayLocation.rotation + 45,
-                    });
-                  }}
-                >
-                  <RotateCw />
-                </Button>
+                <ContextMenu>
+                  <ContextMenuTrigger>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setOverlay({
+                          ...overlayLocation,
+                          rotation: overlayLocation.rotation - 45,
+                        });
+                      }}
+                    >
+                      <RotateCcw />
+                    </Button>
+                  </ContextMenuTrigger>
+                  <ContextMenuContent>
+                    {[5, 15, 90].map((value, index) => (
+                      <ContextMenuItem
+                        key={index}
+                        onClick={() =>
+                          setOverlay({
+                            ...overlayLocation,
+                            rotation: overlayLocation.rotation - value,
+                          })
+                        }
+                      >
+                        Rotate {value} Degrees Counter-Clockwise
+                      </ContextMenuItem>
+                    ))}
+                  </ContextMenuContent>
+                </ContextMenu>
+                <ContextMenu>
+                  <ContextMenuTrigger>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setOverlay({
+                          ...overlayLocation,
+                          rotation: overlayLocation.rotation + 45,
+                        });
+                      }}
+                    >
+                      <RotateCw />
+                    </Button>
+                  </ContextMenuTrigger>
+                  <ContextMenuContent>
+                    {[5, 15, 90].map((value, index) => (
+                      <ContextMenuItem
+                        key={index}
+                        onClick={() =>
+                          setOverlay({
+                            ...overlayLocation,
+                            rotation: overlayLocation.rotation + value,
+                          })
+                        }
+                      >
+                        Rotate {value} Degrees Clockwise
+                      </ContextMenuItem>
+                    ))}
+                  </ContextMenuContent>
+                </ContextMenu>
               </div>
               <DraggableOverlayRectangle
                 overlay={overlayLocation}
                 lobbyLocation={finalLocations[0].location}
-                setOverlay={(newOverlay) =>
-                  setOverlay({ ...overlayLocation, ...newOverlay })
-                }
+                setOverlay={setOverlay}
               />
             </GMap>
           </APIProvider>
@@ -908,7 +944,9 @@ function SiteLabelsAndInputs({
             trigger={<Button>Set Location</Button>}
             locations={mapLocations}
             overlayLocation={lobbyOverlay as PartialOverlayRequiredBase64}
-            setOverlay={setLobbyOverlay}
+            setOverlay={(newOverlay) =>
+              setLobbyOverlay({ ...lobbyOverlay, ...newOverlay })
+            }
           />
         ) : (
           <Button disabled>
