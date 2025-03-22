@@ -13,7 +13,7 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "B&W Navigator | Brigham and Women's Hospital",
   description:
-    "Get help navigating auxiliary ambulatory sites and services managed by Brigham and Women's Hospital. Find drop-off locations, parking, and directories. Brigham and Women's hopsital is a founding member of Mass General Brigham",
+    "Get help navigating auxiliary ambulatory sites and services managed by Brigham and Women's Hospital. Find drop-off locations, parking, and directories. Brigham and Women's hospital is a founding member of Mass General Brigham",
 };
 
 export default function RootLayout({
